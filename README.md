@@ -1,3 +1,6 @@
+# About SpendShare
+It is a application with firebase hosting where we can add our daily expenses to track our money flow and Split the bill in groups and settle the money instantly without any hassle. 
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
