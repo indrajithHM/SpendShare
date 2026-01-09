@@ -9,42 +9,50 @@ import BottomNav from "./BottomNav";
 export default function SplitHome() {
   const [splits, setSplits] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [loadingSplits, setLoadingSplits] = useState(true);
+
 
   useEffect(() => {
-    let unsubscribeDb = null;
+  let unsubscribeDb = null;
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      setSplits([]);
+      setLoadingSplits(false); // auth resolved, no user
+      return;
+    }
+
+    setLoadingSplits(true);
+
+    const r = ref(db, "splits");
+
+    unsubscribeDb = onValue(r, (snap) => {
+      if (!snap.exists()) {
         setSplits([]);
+        setLoadingSplits(false);
         return;
       }
 
-      const r = ref(db, "splits");
-
-      unsubscribeDb = onValue(r, (snap) => {
-        if (!snap.exists()) {
-          setSplits([]);
-          return;
-        }
-
-        const list = Object.entries(snap.val())
-          .map(([id, s]) => ({ id, ...s }))
-          // ✅ FILTER RESTORED SAFELY
-          .filter(s =>
+      const list = Object.entries(snap.val())
+        .map(([id, s]) => ({ id, ...s }))
+        .filter(
+          s =>
             s.createdBy === user.uid ||
             s.members?.[user.uid]
-          )
-          .reverse();
+        )
+        .reverse();
 
-        setSplits(list);
-      });
+      setSplits(list);
+      setLoadingSplits(false); // 🔑 first snapshot received
     });
+  });
 
-    return () => {
-      unsubscribeAuth();
-      if (unsubscribeDb) unsubscribeDb();
-    };
-  }, []);
+  return () => {
+    unsubscribeAuth();
+    if (unsubscribeDb) unsubscribeDb();
+  };
+}, []);
+
 
   return (
     <div>
@@ -61,9 +69,15 @@ export default function SplitHome() {
       </div>
 
       {/* SPLIT LIST */}
-      {splits.length === 0 && (
-        <p className="text-muted">No splits yet</p>
-      )}
+     {loadingSplits ? (
+  <div className="text-center py-4">
+    <div className="spinner-border text-primary mb-2" />
+    <div className="text-muted">Loading splits…</div>
+  </div>
+) : splits.length === 0 ? (
+  <p className="text-muted">No splits yet</p>
+) : null}
+
 
       {splits.map(s => (
         <SplitCard key={s.id} split={s} />
