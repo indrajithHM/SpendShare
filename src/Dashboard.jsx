@@ -56,6 +56,8 @@ export default function Dashboard() {
   const [period, setPeriod] = useState({ month: null, year: null });
   const [unsubscribe, setUnsubscribe] = useState(null);
   const [view, setView] = useState("ADD");
+  const [loadingExpenses, setLoadingExpenses] = useState(true);
+
 
   
   useEffect(() => {
@@ -67,47 +69,50 @@ export default function Dashboard() {
 
   /* ---------- APPLY FILTER ---------- */
   const applyFilter = ({ month, year }) => {
-    if (unsubscribe) unsubscribe();
+  if (unsubscribe) unsubscribe();
 
-    setPeriod({ month, year });
+  setLoadingExpenses(true);
+  setPeriod({ month, year });
 
-    const start = new Date(year, month, 1).getTime();
-    const end = new Date(year, Number(month) + 1, 0, 23, 59, 59, 999).getTime();
+  const start = new Date(year, month, 1).getTime();
+  const end = new Date(year, Number(month) + 1, 0, 23, 59, 59, 999).getTime();
 
-    const q = query(
-      ref(db, `expenses/${auth.currentUser.uid}`),
-      orderByChild("timestamp"),
-      startAt(start),
-      endAt(end)
-    );
+  const q = query(
+    ref(db, `expenses/${auth.currentUser.uid}`),
+    orderByChild("timestamp"),
+    startAt(start),
+    endAt(end)
+  );
 
-    const unsub = onValue(q, snap => {
-      const data = snap.exists()
-        ? Object.entries(snap.val())
-            .map(([id, e]) => ({ id, ...e }))
-            .sort((a, b) => b.timestamp - a.timestamp)
-        : [];
+  const unsub = onValue(q, snap => {
+    const data = snap.exists()
+      ? Object.entries(snap.val())
+          .map(([id, e]) => ({ id, ...e }))
+          .sort((a, b) => b.timestamp - a.timestamp)
+      : [];
 
-      let debit = 0;
-      let credit = 0;
-      let banks = {};
+    let debit = 0;
+    let credit = 0;
+    let banks = {};
 
-      data.forEach(e => {
-        if (e.type === "DEBIT") debit += e.amount;
-        else credit += e.amount;
+    data.forEach(e => {
+      if (e.type === "DEBIT") debit += e.amount;
+      else credit += e.amount;
 
-        if (!banks[e.bank]) banks[e.bank] = { debit: 0, credit: 0 };
-        if (e.type === "DEBIT") banks[e.bank].debit += e.amount;
-        else banks[e.bank].credit += e.amount;
-      });
-
-      setExpenses(data);
-      setFiltered(data);
-      setSummary({ debit, credit, banks });
+      if (!banks[e.bank]) banks[e.bank] = { debit: 0, credit: 0 };
+      if (e.type === "DEBIT") banks[e.bank].debit += e.amount;
+      else banks[e.bank].credit += e.amount;
     });
 
-    setUnsubscribe(() => unsub);
-  };
+    setExpenses(data);
+    setFiltered(data);
+    setSummary({ debit, credit, banks });
+    setLoadingExpenses(false); // 🔑 snapshot received
+  });
+
+  setUnsubscribe(() => unsub);
+};
+
 
   /* ---------- SEARCH ---------- */
   useEffect(() => {
@@ -149,7 +154,7 @@ export default function Dashboard() {
       />
 
       <div className="row justify-content-center">
-        <div className="col-12 col-md-10 col-lg-8 col-xl-6">
+        <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
 
           {view === "ADD" && <AddExpense />}
 
@@ -228,52 +233,23 @@ export default function Dashboard() {
                 );
               })}
 
-              {filtered.length === 0 && (
-                <p className="text-muted text-center">
-                  No matching transactions
-                </p>
-              )}
+              {loadingExpenses ? (
+  <div className="text-center py-4">
+    <div className="spinner-border text-primary mb-2" />
+    <div className="text-muted">Loading expenses…</div>
+  </div>
+) : filtered.length === 0 ? (
+  <p className="text-muted text-center">
+    No matching transactions
+  </p>
+) : null}
+
             </>
           )}
         </div>
       </div>
 
-      {/* ===== FOOTER ===== */}
-      {/* <div className="fixed-bottom bg-light border-top">
-        <div className="container">
-          <div className="row text-center g-0">
-            <div className="col-4 py-2">
-              <button
-                className={`btn w-100 ${view === "ADD" ? "btn-primary" : "btn-outline-primary"}`}
-                onClick={() => setView("ADD")}
-              >
-                <i className="bi bi-plus-circle fs-5 d-block"></i>
-                <small>Add</small>
-              </button>
-            </div>
-
-            <div className="col-4 py-2">
-              <button
-                className={`btn w-100 ${view === "SUMMARY" ? "btn-primary" : "btn-outline-primary"}`}
-                onClick={() => setView("SUMMARY")}
-              >
-                <i className="bi bi-bar-chart fs-5 d-block"></i>
-                <small>Summary</small>
-              </button>
-            </div>
-
-            <div className="col-4 py-2">
-              <button
-                className="btn w-100 btn-outline-primary"
-                onClick={() => navigate("/split")}
-              >
-                <i className="bi bi-people fs-5 d-block"></i>
-                <small>Split</small>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> */}
+    
       <div>
         <BottomNav
   mode="dashboard"

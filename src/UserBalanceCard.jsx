@@ -8,7 +8,7 @@ export default function UserBalanceCards({ members, expenses, settlements }) {
   );
 
   return (
-    <div className="row g-2 mb-3">
+    <div className="row g-2 mb-3 display-flex justify-content-center">
       {Object.entries(members).map(([uid, m]) => {
         const balance = settlement[uid] || 0;
 

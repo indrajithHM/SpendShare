@@ -23,15 +23,23 @@ export default function SplitDashboard() {
   const [upiInput, setUpiInput] = useState("");
   const [savingUpi, setSavingUpi] = useState(false);
   const [upiSaved, setUpiSaved] = useState(false);
+  const [loadingSplit, setLoadingSplit] = useState(true);
+
 
   const uid = auth.currentUser?.uid;
 
   /* ================= LOAD SPLIT ================= */
-  useEffect(() => {
-    return onValue(ref(db, `splits/${splitId}`), snap => {
-      if (snap.exists()) setSplit(snap.val());
-    });
-  }, [splitId]);
+ useEffect(() => {
+  const unsub = onValue(ref(db, `splits/${splitId}`), snap => {
+    if (snap.exists()) {
+      setSplit(snap.val());
+    }
+    setLoadingSplit(false);
+  });
+
+  return unsub;
+}, [splitId]);
+
 
   /* ================= INIT UPI ================= */
   useEffect(() => {
@@ -41,9 +49,28 @@ export default function SplitDashboard() {
     }
   }, [split, uid]);
 
-  if (!split) {
-    return <p className="text-center mt-3">Loading...</p>;
-  }
+ if (loadingSplit) {
+  return (
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{ minHeight: "60vh" }}
+    >
+      <div className="text-center">
+        <div className="spinner-border text-primary mb-2" />
+        <div className="text-muted">Loading split…</div>
+      </div>
+    </div>
+  );
+}
+
+if (!split) {
+  return (
+    <p className="text-center mt-3 text-muted">
+      Split not found
+    </p>
+  );
+}
+
 
   const members = split.members || {};
   const expenses = split.expenses || {};
@@ -183,12 +210,14 @@ export default function SplitDashboard() {
           {/* ================================================= */}
           {/* ================= SETTLEMENT =================== */}
           {/* ================================================= */}
+          <div className="p-3">
           <SettlementView
             splitId={splitId}
             expenses={expenses}
             members={members}
             settlements={settlements}
           />
+          </div>
 
           {/* ================================================= */}
           {/* ================= PAYMENT HISTORY ============== */}
@@ -201,7 +230,7 @@ export default function SplitDashboard() {
           )}
 
           {/* ---------- MEMBERS ---------- */}
-          <div className="card p-3 mt-3">
+          <div className="card p-3 mb-5">
             <h6>Members</h6>
             {Object.entries(members).map(([id, m]) => (
               <div
@@ -239,13 +268,17 @@ export default function SplitDashboard() {
       )}
      
     </div>
-     <div className="container pb-5" >
+     {/* <div className="container pb-5" >
           <BottomNav
   mode="split"
   active="SPLIT"
 />
 
-      </div>
+      </div> */}
+       <BottomNav
+        mode="split"
+        active="SPLIT"
+      />
     </div>
   );
 }
