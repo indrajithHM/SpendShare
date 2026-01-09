@@ -21,7 +21,7 @@ export default function Header() {
           {/* LEFT: BACK + LOGO + NAME */}
           <div className="d-flex align-items-center">
 
-            {showBack && (
+            {/* {showBack && (
               <button
                 className="btn btn-link me-2 p-0"
                 onClick={() => navigate(-1)}
@@ -29,7 +29,7 @@ export default function Header() {
               >
                 <i className="bi bi-arrow-left fs-4"></i>
               </button>
-            )}
+            )} */}
 
             {/* LOGO + NAME → HOME */}
             <div
