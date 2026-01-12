@@ -1,7 +1,8 @@
 import { auth, db } from "./firebase";
 import { ref, push } from "firebase/database";
 import { calculateSettlement } from "./calculateSettlement";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 
 export default function SettlementView({
   splitId,
