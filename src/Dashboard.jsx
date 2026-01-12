@@ -15,6 +15,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "./BottomNav";
 import { useLocation } from "react-router-dom";
+import BottomSheet from "./BottomSheet";
+import CategoryGrid from "./CategoryGrid";
+import { useUserCategories } from "./useUserCategories";
+import CategoryBudgetRing from "./CategoryBudgetRing";
+import CategoryExpenseList from "./CategoryExpenseList";
+
+
 
 
 /* ---------- DATE FORMAT ---------- */
@@ -42,6 +49,12 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
+
+  const [selectedCategory, setSelectedCategory] = useState(null);
+const [showCategoryFilter, setShowCategoryFilter] = useState(false);
+
+const [activeCategory, setActiveCategory] = useState(null);
+const [showCategoryDetails, setShowCategoryDetails] = useState(false);
 
   const location = useLocation();
  
@@ -116,15 +129,22 @@ export default function Dashboard() {
 
   /* ---------- SEARCH ---------- */
   useEffect(() => {
-    const s = search.toLowerCase();
-    setFiltered(
-      expenses.filter(
-        e =>
-          e.description.toLowerCase().includes(s) ||
-          String(e.amount).includes(s)
-      )
-    );
-  }, [search, expenses]);
+  const s = search.toLowerCase();
+
+  setFiltered(
+    expenses.filter(e => {
+      const matchesText =
+        e.description.toLowerCase().includes(s) ||
+        String(e.amount).includes(s);
+
+      const matchesCategory =
+        selectedCategory === null ||
+        e.category === selectedCategory;
+
+      return matchesText && matchesCategory;
+    })
+  );
+}, [search, expenses, selectedCategory]);
 
   /* ---------- INIT ---------- */
   useEffect(() => {
@@ -140,6 +160,30 @@ export default function Dashboard() {
   };
 
   const grouped = groupByDate(filtered);
+  const totalSpent = filtered.reduce(
+  (sum, e) => (e.type === "DEBIT" ? sum + e.amount : sum),
+  0
+);
+
+const { allCategories } = useUserCategories();
+
+const categoryBudgetSummary = allCategories.map(cat => {
+  const spent = filtered.reduce((sum, e) => {
+    if (e.type !== "DEBIT") return sum;
+    if ((e.category ?? "Others") !== cat.key) return sum;
+    return sum + e.amount;
+  }, 0);
+
+  const budget = cat.budget ?? null;
+
+  return {
+    key: cat.key,
+    icon: cat.icon,
+    spent,
+    budget,
+    percent: budget ? Math.min((spent / budget) * 100, 150) : 0
+  };
+});
 
   return (
     <div className="container pb-5">
@@ -160,15 +204,82 @@ export default function Dashboard() {
 
           {view === "SUMMARY" && (
             <>
-              <ExpenseFilter onApply={applyFilter} />
+            
+                <div className="row mt-3">
+  {categoryBudgetSummary.map(cat => (
+    <CategoryBudgetRing
+      key={cat.key}
+      icon={cat.icon}
+      name={cat.key}
+      spent={cat.spent}
+      budget={cat.budget}
+      percent={cat.percent}
+      onClick={() => {
+        setActiveCategory(cat.key);
+        setShowCategoryDetails(true);
+      }}
+    />
+  ))}
 
-              <input
-                className="form-control mb-3"
-                placeholder="Search by description or amount"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
 
+    <ExpenseFilter 
+              onApply={applyFilter}
+               onSearch={setSearch}
+                totalSpent={totalSpent}
+                 />
+</div>
+
+              <div
+  className="form-control d-flex justify-content-between align-items-center mb-3"
+  style={{ cursor: "pointer" }}
+  onClick={() => setShowCategoryFilter(true)}
+>
+  <span>
+    {selectedCategory ?? "All Categories"}
+  </span>
+  <i className="bi bi-chevron-down text-muted" />
+</div>
+{/* ===== CATEGORY FILTER POPUP ===== */}
+<BottomSheet
+  open={showCategoryFilter}
+  onClose={() => setShowCategoryFilter(false)}
+  title="Filter by Category"
+>
+  <CategoryGrid
+  value={selectedCategory}
+  onChange={cat => {
+    setSelectedCategory(cat);
+    setShowCategoryFilter(false);
+  }}
+  mode="select"
+/>
+
+  {/* CLEAR FILTER */}
+  {selectedCategory && (
+    <button
+  className="btn btn-outline-secondary w-100 mt-3"
+  onClick={() => {
+    setSelectedCategory(null);
+    setShowCategoryFilter(false);
+  }}
+>
+  Clear Category Filter
+</button>
+
+  )}
+</BottomSheet>
+<BottomSheet
+  open={showCategoryDetails}
+  onClose={() => setShowCategoryDetails(false)}
+  title={activeCategory}
+>
+  <CategoryExpenseList
+    category={activeCategory}
+    expenses={filtered}
+  />
+</BottomSheet>
+
+          
               {Object.entries(grouped).map(([date, items]) => {
                 const dayTotal = items.reduce(
                   (sum, e) =>
@@ -202,11 +313,14 @@ export default function Dashboard() {
                           key={e.id}
                           className="list-group-item d-flex justify-content-between align-items-start"
                         >
-                          <div>
-                            <strong>{e.description}</strong>
-                            <br />
-                            <small className="text-muted">{e.bank}</small>
-                          </div>
+                         <div>
+  <strong>{e.description}</strong>
+  <br />
+  <small className="text-muted">
+    {e.bank} · {e.category ?? "Uncategorized"}
+  </small>
+</div>
+
 
                           <div className="text-end">
                             <span

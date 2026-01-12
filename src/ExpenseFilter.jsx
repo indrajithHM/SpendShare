@@ -1,18 +1,18 @@
 import { useState } from "react";
 
-export default function ExpenseFilter({ onApply, onSearch }) {
+export default function ExpenseFilter({ onApply, onSearch, totalSpent }) {
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
   const [search, setSearch] = useState("");
 
   return (
     <div className="card p-3 mb-3">
-      <div className="row g-2 mb-2">
+      <div className="row g-4 mb-2">
         <div className="col-6">
           <select
             className="form-select"
             value={month}
-            onChange={e => setMonth(e.target.value)}
+            onChange={e => setMonth(Number(e.target.value))}
           >
             {Array.from({ length: 12 }).map((_, i) => (
               <option key={i} value={i}>
@@ -27,12 +27,12 @@ export default function ExpenseFilter({ onApply, onSearch }) {
             className="form-control"
             type="number"
             value={year}
-            onChange={e => setYear(e.target.value)}
+            onChange={e => setYear(Number(e.target.value))}
           />
         </div>
       </div>
 
-      {/* 🔍 SEARCH */}
+      {/* SEARCH */}
       <input
         className="form-control mb-2"
         placeholder="Search by description or amount"
@@ -42,6 +42,12 @@ export default function ExpenseFilter({ onApply, onSearch }) {
           onSearch(e.target.value);
         }}
       />
+
+      {/* TOTAL SPENT */}
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <span className="text-muted fw-semibold">Total Money Spent</span>
+        <span className="fw-bold text-danger">₹{totalSpent}</span>
+      </div>
 
       <button
         className="btn btn-primary w-100"

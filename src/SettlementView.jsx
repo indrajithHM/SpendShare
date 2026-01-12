@@ -75,7 +75,6 @@ export default function SettlementView({
 }
 
 /* ================= PARTIAL PAYMENT ROW ================= */
-
 function PartialPayRow({
   splitId,
   fromId,
@@ -88,56 +87,58 @@ function PartialPayRow({
 }) {
   const [amt, setAmt] = useState(maxPay);
 
-  // 🔒 Only debtor sees Pay / Mark Paid
+  // 🔑 Sync amount when maxPay changes
+  useEffect(() => {
+    setAmt(maxPay);
+  }, [maxPay]);
+
   if (fromId !== uid) return null;
 
   return (
     <div className="border-bottom py-2">
-    <div className="d-flex justify-content-between">
-      <strong>
-        {debtor.name} → {creditor.name}
-      </strong>
-      <strong>₹{maxPay.toFixed(2)}</strong>
+      <div className="d-flex justify-content-between">
+        <strong>
+          {debtor.name} → {creditor.name}
+        </strong>
+        <strong>₹{maxPay.toFixed(2)}</strong>
+      </div>
+
+      <input
+        type="number"
+        className="form-control form-control-sm mt-2 py-2"
+        value={amt}
+        min={1}
+        max={maxPay}
+        onChange={e => setAmt(Number(e.target.value))}
+      />
+
+      <div className="d-flex gap-2 mt-2">
+        <a
+          href={upiLink(creditor.upi, amt, creditor.name)}
+          className="btn btn-success btn-sm flex-fill py-2"
+        >
+          Pay via UPI
+        </a>
+
+        <button
+          className="btn btn-outline-primary btn-sm flex-fill"
+          onClick={async () => {
+            if (amt <= 0 || amt > maxPay) return;
+
+            await push(
+              ref(db, `splits/${splitId}/settlements`),
+              {
+                from: fromId,
+                to: toId,
+                amount: amt,
+                paidAt: Date.now()
+              }
+            );
+          }}
+        >
+          Mark Paid
+        </button>
+      </div>
     </div>
-
-    {/* Amount input */}
-    <input
-      type="number"
-      className="form-control form-control-sm mt-2 py-2"
-      value={amt}
-      min={1}
-      max={maxPay}
-      onChange={e => setAmt(Number(e.target.value))}
-    />
-
-    {/* Action buttons */}
-    <div className="d-flex gap-2 mt-2">
-      <a
-        href={upiLink(creditor.upi, amt, creditor.name)}
-        className="btn btn-success btn-sm flex-fill py-2"
-      >
-        Pay via UPI
-      </a>
-
-      <button
-        className="btn btn-outline-primary btn-sm flex-fill"
-        onClick={async () => {
-          if (amt <= 0 || amt > maxPay) return;
-
-          await push(
-            ref(db, `splits/${splitId}/settlements`),
-            {
-              from: fromId,
-              to: toId,
-              amount: amt,
-              paidAt: Date.now()
-            }
-          );
-        }}
-      >
-        Mark Paid
-      </button>
-    </div>
-  </div>
   );
 }

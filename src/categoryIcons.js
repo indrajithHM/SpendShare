@@ -1,0 +1,22 @@
+export const CATEGORY_ICONS = [
+  "bi-egg-fried",
+  "bi-bus-front",
+  "bi-bag",
+  "bi-house-door",
+  "bi-lightning",
+  "bi-film",
+  "bi-heart-pulse",
+  "bi-airplane",
+  "bi-controller",
+  "bi-cup-hot",
+  "bi-bicycle",
+  "bi-wallet",
+  "bi-briefcase",
+  "bi-dumbbell",
+  "bi bi-bag-plus-fill",
+  "bi bi-credit-card",
+   "bi bi-wallet2",
+    "bi-house-door",
+    "bi-lightning", 
+
+];
