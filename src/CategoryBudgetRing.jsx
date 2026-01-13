@@ -17,7 +17,7 @@ export default function CategoryBudgetRing({
   return (
     <div className="col-4 mb-3">
       <div
-  className="card p-2 text-center h-100"
+  className="card p-2 category-card text-center h-100"
   style={{ cursor: "pointer" }}
   onClick={onClick}
 >
@@ -60,6 +60,7 @@ export default function CategoryBudgetRing({
             style={{ pointerEvents: "none" }}
           >
             <i className={`bi ${icon} fs-4`} />
+           {budget&&<div className="small"> <span>{Math.round(percent)}%</span></div>}
           </div>
         </div>
 
@@ -67,13 +68,14 @@ export default function CategoryBudgetRing({
         <div className="fw-semibold small">{name}</div>
 
         <div className="small">
+           
           <span className={isOver ? "text-danger fw-semibold" : ""}>
-            ₹{spent}
-          </span>{" "}
-          spent
+            ₹{spent}{budget&& (<>/₹{budget}</>)}
+          </span>
+        
         </div>
 
-        {budget && (
+        {/* {budget && (
           <>
             <div className="small text-muted">
               Budget: ₹{budget}
@@ -87,7 +89,7 @@ export default function CategoryBudgetRing({
               {Math.round(percent)}%
             </div>
           </>
-        )}
+        )} */}
       </div>
     </div>
   );
