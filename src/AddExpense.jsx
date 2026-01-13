@@ -44,7 +44,7 @@ const getCategoryIcon = key =>
 
     f.reset();
     f.date.value = todayISO();
-    setCategory("Food"); // reset category
+    setCategory("Groceries"); // reset category
   };
 
   return (
