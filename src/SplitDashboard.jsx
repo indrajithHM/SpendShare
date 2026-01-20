@@ -190,9 +190,20 @@ if (!split) {
                   <br />
                   <small className="text-muted">
                     ₹{e.amount} • Paid by {members[e.paidBy]?.name}
+                    <br />
+  {e.createdAt && (
+    <span>
+      {new Date(e.createdAt).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      })}
+    </span>
+  )}
                   </small>
+                  
                 </div>
-
+                
                 {uid === e.paidBy && status === "OPEN" && (
                   <button
                     className="btn btn-sm btn-outline-secondary"
