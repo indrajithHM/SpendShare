@@ -3,7 +3,6 @@ import { ref, push } from "firebase/database";
 import { calculateSettlement } from "./calculateSettlement";
 import { useState, useEffect } from "react";
 
-
 export default function SettlementView({
   splitId,
   expenses,
@@ -19,67 +18,76 @@ export default function SettlementView({
     settlements
   );
 
-  /* 🔹 COMPUTE DEBTORS & CREDITORS */
+  const round2 = n => Math.round(n * 100) / 100;
+
   const debtors = Object.entries(settlement)
-    .filter(([, v]) => v < 0)
-    .map(([id, v]) => ({ id, amount: Math.abs(v) }));
+    .filter(([, v]) => v < -0.01)
+    .map(([id, v]) => ({ id, amount: round2(Math.abs(v)) }));
 
   const creditors = Object.entries(settlement)
-    .filter(([, v]) => v > 0)
-    .map(([id, v]) => ({ id, amount: v }));
+    .filter(([, v]) => v > 0.01)
+    .map(([id, v]) => ({ id, amount: round2(v) }));
+
+  const userBalance = round2(settlement[uid] ?? 0);
+
+  const isAllSettled = Object.values(settlement).every(
+    v => Math.abs(v) < 0.01
+  );
 
   const upiLink = (upi, amount, name) =>
     `upi://pay?pa=${upi}&pn=${encodeURIComponent(
       name
     )}&am=${amount.toFixed(2)}&cu=INR`;
-    
-    const isAllSettled = Object.values(settlement).every(
-  v => Math.abs(v) < 0.01);
 
-  const userBalance = settlement[uid] ?? 0;
-{/* ✅ ALL SETTLED */}
-{isAllSettled && (
-  <p className="text-muted mb-0 text-center">
-    All settled 🎉
-  </p>
-)}
+  return (
+    <div className="card p-3 mb-3">
+      <h6 className="mb-2">Settlement</h6>
 
-{/* ℹ️ USER IS CREDITOR */}
-{!isAllSettled && userBalance > 0 && (
-  <p className="text-muted mb-0 text-center">
-    You will receive ₹{userBalance.toFixed(2)}
-  </p>
-)}
+      {/* ✅ ALL SETTLED */}
+      {isAllSettled && (
+        <p className="text-muted mb-0 text-center">
+          All settled 🎉
+        </p>
+      )}
 
-{/* 🔻 USER OWES MONEY */}
-{!isAllSettled && userBalance < 0 &&
-  debtors.map(debtor =>
-    creditors.map(creditor => {
-      if (debtor.id === creditor.id) return null;
+      {/* ℹ️ USER IS CREDITOR */}
+      {!isAllSettled && userBalance > 0 && (
+        <p className="text-muted mb-0 text-center">
+          You will receive ₹{userBalance.toFixed(2)}
+        </p>
+      )}
 
-      const maxPay = Math.min(debtor.amount, creditor.amount);
-      if (maxPay <= 0) return null;
+      {/* 🔻 USER OWES MONEY */}
+      {!isAllSettled && userBalance < 0 &&
+        debtors.map(debtor =>
+          debtor.id === uid
+            ? creditors.map(creditor => {
+                const maxPay = round2(
+                  Math.min(debtor.amount, creditor.amount)
+                );
 
-      return (
-        <PartialPayRow
-          key={`${debtor.id}_${creditor.id}`}
-          splitId={splitId}
-          fromId={debtor.id}
-          toId={creditor.id}
-          maxPay={maxPay}
-          debtor={members[debtor.id]}
-          creditor={members[creditor.id]}
-          uid={uid}
-          upiLink={upiLink}
-        />
-      );
-    })
-  )
+                if (maxPay <= 0) return null;
+
+                return (
+                  <PartialPayRow
+                    key={`${debtor.id}_${creditor.id}`}
+                    splitId={splitId}
+                    fromId={debtor.id}
+                    toId={creditor.id}
+                    maxPay={maxPay}
+                    debtor={members[debtor.id]}
+                    creditor={members[creditor.id]}
+                    uid={uid}
+                    upiLink={upiLink}
+                  />
+                );
+              })
+            : null
+        )
+      }
+    </div>
+  );
 }
-
-}
-
-/* ================= PARTIAL PAYMENT ROW ================= */
 function PartialPayRow({
   splitId,
   fromId,
@@ -90,11 +98,11 @@ function PartialPayRow({
   uid,
   upiLink
 }) {
+  const round2 = n => Math.round(n * 100) / 100;
   const [amt, setAmt] = useState(maxPay);
 
-  // 🔑 Sync amount when maxPay changes
   useEffect(() => {
-    setAmt(maxPay);
+    setAmt(round2(maxPay));
   }, [maxPay]);
 
   if (fromId !== uid) return null;
@@ -112,9 +120,10 @@ function PartialPayRow({
         type="number"
         className="form-control form-control-sm mt-2 py-2"
         value={amt}
-        min={1}
+        step="0.01"
+        min="0.01"
         max={maxPay}
-        onChange={e => setAmt(Number(e.target.value))}
+        onChange={e => setAmt(round2(Number(e.target.value)))}
       />
 
       <div className="d-flex gap-2 mt-2">

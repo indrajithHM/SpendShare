@@ -1,45 +1,38 @@
 export function calculateSettlement(members, expenses, settlements = {}) {
   const memberIds = Object.keys(members);
+
   let paid = {};
   let owed = {};
 
-
-
   memberIds.forEach(id => {
-    paid[id] = 0;
-    owed[id] = 0;
+    paid[id] = 0; // paise
+    owed[id] = 0; // paise
   });
+
+  const toPaise = n => Math.round(n * 100);
 
   // 1️⃣ EXPENSES
   expenses.forEach(e => {
-   
-    
-    paid[e.paidBy] = (paid[e.paidBy] || 0) + e.amount;
+    paid[e.paidBy] += toPaise(e.amount);
 
-    // All split types already have the share calculated in participants
     Object.entries(e.participants || {}).forEach(([uid, p]) => {
       const share = Number(p.share || 0);
-      owed[uid] = (owed[uid] || 0) + share;
+      owed[uid] += toPaise(share);
     });
   });
 
-
-
   // 2️⃣ SUBTRACT SETTLEMENTS
   Object.values(settlements || {}).forEach(s => {
-    paid[s.from] = (paid[s.from] || 0) + s.amount;
-    paid[s.to] = (paid[s.to] || 0) - s.amount;
+    const amt = toPaise(s.amount);
+    paid[s.from] += amt;
+    paid[s.to] -= amt;
   });
 
- 
-
-  // 3️⃣ FINAL BALANCE
+  // 3️⃣ FINAL BALANCE (rupees)
   let settlement = {};
   memberIds.forEach(id => {
-    settlement[id] = (paid[id] || 0) - (owed[id] || 0);
+    settlement[id] = (paid[id] - owed[id]) / 100;
   });
-
- 
 
   return { settlement };
 }
