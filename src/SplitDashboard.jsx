@@ -108,7 +108,13 @@ if (!split) {
     navigate("/split");
   };
 
+   const visibleExpenses = Object.entries(expenses).filter(
+  ([_, e]) => e.paidBy === uid || e.participants?.[uid]
+);
+
   return (
+    <div className="row justify-content-center">
+        <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
     <div>
     <div className="container py-3">
 
@@ -176,11 +182,16 @@ if (!split) {
           <div className="card p-3 mt-3">
             <h6>Expenses</h6>
 
-            {Object.keys(expenses).length === 0 && (
-              <p className="text-muted">No expenses yet</p>
+            {/* {Object.keys(expenses).length === 0 && (
+              <p className="text-muted">No expenses assigned to you</p>
+            )} */}
+             {visibleExpenses.length === 0 && (
+              <p className="text-muted">No expenses assigned to you</p>
             )}
+           
 
-            {Object.entries(expenses).map(([eid, e]) => (
+
+            {visibleExpenses.map(([eid, e]) => (
               <div
                 key={eid}
                 className="d-flex justify-content-between align-items-center border-bottom py-2"
@@ -290,6 +301,8 @@ if (!split) {
         mode="split"
         active="SPLIT"
       />
+    </div>
+    </div>
     </div>
   );
 }

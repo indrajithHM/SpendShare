@@ -50,7 +50,7 @@ export default function SummaryCards({
       </div>
 
       {showDetails && (
-        <div className="card p-2">
+        <div className="card p-2 ">
           <h6 className="mb-2">Bank / Card Summary</h6>
 
           {Object.entries(uniqueBanks).map(([bankKey, values]) => (

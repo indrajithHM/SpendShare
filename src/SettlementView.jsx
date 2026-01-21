@@ -32,47 +32,51 @@ export default function SettlementView({
     `upi://pay?pa=${upi}&pn=${encodeURIComponent(
       name
     )}&am=${amount.toFixed(2)}&cu=INR`;
+    
+    const isAllSettled = Object.values(settlement).every(
+  v => Math.abs(v) < 0.01);
 
-  return (
-    <div className="card p-3 mb-3">
-      <h6 className="mb-2">Settlement</h6>
+  const userBalance = settlement[uid] ?? 0;
+{/* ✅ ALL SETTLED */}
+{isAllSettled && (
+  <p className="text-muted mb-0 text-center">
+    All settled 🎉
+  </p>
+)}
 
-      {/* ✅ ALL SETTLED MESSAGE */}
-      {debtors.length === 0 && (
-        <p className="text-muted mb-0 text-center">
-          All settled 🎉
-        </p>
-      )}
+{/* ℹ️ USER IS CREDITOR */}
+{!isAllSettled && userBalance > 0 && (
+  <p className="text-muted mb-0 text-center">
+    You will receive ₹{userBalance.toFixed(2)}
+  </p>
+)}
 
-      {/* 🔻 PARTIAL PAY ROWS */}
-      {debtors.map(debtor =>
-        creditors.map(creditor => {
-          if (debtor.id === creditor.id) return null;
+{/* 🔻 USER OWES MONEY */}
+{!isAllSettled && userBalance < 0 &&
+  debtors.map(debtor =>
+    creditors.map(creditor => {
+      if (debtor.id === creditor.id) return null;
 
-          const maxPay = Math.min(
-            debtor.amount,
-            creditor.amount
-          );
+      const maxPay = Math.min(debtor.amount, creditor.amount);
+      if (maxPay <= 0) return null;
 
-          if (maxPay <= 0) return null;
+      return (
+        <PartialPayRow
+          key={`${debtor.id}_${creditor.id}`}
+          splitId={splitId}
+          fromId={debtor.id}
+          toId={creditor.id}
+          maxPay={maxPay}
+          debtor={members[debtor.id]}
+          creditor={members[creditor.id]}
+          uid={uid}
+          upiLink={upiLink}
+        />
+      );
+    })
+  )
+}
 
-          return (
-            <PartialPayRow
-              key={`${debtor.id}_${creditor.id}`}
-              splitId={splitId}
-              fromId={debtor.id}
-              toId={creditor.id}
-              maxPay={maxPay}
-              debtor={members[debtor.id]}
-              creditor={members[creditor.id]}
-              uid={uid}
-              upiLink={upiLink}
-            />
-          );
-        })
-      )}
-    </div>
-  );
 }
 
 /* ================= PARTIAL PAYMENT ROW ================= */

@@ -189,13 +189,25 @@ const categoryBudgetSummary = allCategories.map(cat => {
     <div className="container pb-5">
 
       {/* ===== SUMMARY ===== */}
-      <SummaryCards
+      <div className="row justify-content-center">
+  <div className="col-12 col-md-10 col-lg-8 col-xl-6">
+    <SummaryCards
+      debit={summary.debit}
+      credit={summary.credit}
+      banks={summary.banks}
+      period={period}
+      showDetails={view === "SUMMARY"}
+    />
+  </div>
+</div>
+
+      {/* <SummaryCards
         debit={summary.debit}
         credit={summary.credit}
         banks={summary.banks}
         period={period}
         showDetails={view === "SUMMARY"}
-      />
+      /> */}
 
       <div className="row justify-content-center">
         <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
@@ -206,6 +218,7 @@ const categoryBudgetSummary = allCategories.map(cat => {
             <>
             
                 <div className="row mt-3">
+                
   {categoryBudgetSummary.map(cat => (
     <CategoryBudgetRing
       key={cat.key}
@@ -221,12 +234,14 @@ const categoryBudgetSummary = allCategories.map(cat => {
     />
   ))}
 
-
+  <div className="mt-3">
     <ExpenseFilter 
               onApply={applyFilter}
                onSearch={setSearch}
                 totalSpent={totalSpent}
                  />
+                 </div>
+                 {/* </div> */}
 </div>
 
               <div
