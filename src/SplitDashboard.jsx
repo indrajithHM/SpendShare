@@ -108,9 +108,13 @@ if (!split) {
     navigate("/split");
   };
 
-   const visibleExpenses = Object.entries(expenses).filter(
-  ([_, e]) => e.paidBy === uid || e.participants?.[uid]
-);
+  const visibleExpenses = Object.entries(expenses)
+  .filter(([_, e]) => e.paidBy === uid || e.participants?.[uid])
+  .sort(([, a], [, b]) => {
+    // newest first
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+
 
   return (
     <div className="row justify-content-center">
