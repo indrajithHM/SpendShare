@@ -26,6 +26,13 @@ export default function SplitDashboard() {
 
   const uid = auth.currentUser?.uid;
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/split");
+    }
+  };
   /* ================= LOAD SPLIT ================= */
   useEffect(() => {
     const unsub = onValue(ref(db, `splits/${splitId}`), (snap) => {
@@ -116,18 +123,29 @@ export default function SplitDashboard() {
       <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
         <div>
           <div className="container py-3">
-            {/* ================= HEADER ================= */}
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4 className="mb-0">{split.name}</h4>
+            {/* ================= STICKY HEADER ================= */}
+            <div className="sticky-header bg-white">
+              <div className="d-flex justify-content-between align-items-center py-2">
+                <div className="d-flex align-items-center gap-2">
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={goBack}
+                  >
+                    <i className="bi bi-arrow-left"></i>
+                  </button>
 
-              {status === "OPEN" && isCreator && (
-                <button
-                  className="btn btn-outline-danger btn-sm"
-                  onClick={closeSplit}
-                >
-                  Close Split
-                </button>
-              )}
+                  <h4 className="mb-0">{split.name}</h4>
+                </div>
+
+                {status === "OPEN" && isCreator && (
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={closeSplit}
+                  >
+                    Close Split
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* ================= NOT JOINED ================= */}
@@ -221,7 +239,7 @@ export default function SplitDashboard() {
                             setEditingExpense({ id: eid, data: e })
                           }
                         >
-                          Edit
+                          View/Edit
                         </button>
                       )}
                     </div>

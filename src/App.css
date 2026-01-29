@@ -141,3 +141,12 @@
 .nav-item.active i {
   transform: scale(1.1);
 }
+
+/* ===== Sticky dashboard header ===== */
+.sticky-header {
+ position: sticky;
+  top: 54px;              /* ⬅️ offset for main app header */
+  z-index: 1010;          /* below app header, above content */
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
