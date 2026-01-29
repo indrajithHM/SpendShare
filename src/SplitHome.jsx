@@ -5,11 +5,14 @@ import { onAuthStateChanged } from "firebase/auth";
 import CreateSplitModal from "./CreateSplitModal";
 import SplitCard from "./SplitCard";
 import BottomNav from "./BottomNav";
+import JoinSplitViaLinkModal from "./JoinSplitViaLinkModal";
 
 export default function SplitHome() {
   const [splits, setSplits] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [loadingSplits, setLoadingSplits] = useState(true);
+  const [showJoin, setShowJoin] = useState(false);
+
 
 
   useEffect(() => {
@@ -58,15 +61,25 @@ export default function SplitHome() {
     <div>
     <div className="container py-3">
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="mb-0">Your Splits</h5>
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={() => setShowCreate(true)}
-        >
-          + Create Split
-        </button>
-      </div>
+     <div className="d-flex justify-content-between align-items-center mb-3">
+  <h5 className="mb-0">Your Splits</h5>
+  <div className="d-flex gap-2">
+    <button
+      className="btn btn-outline-success btn-sm"
+      onClick={() => setShowJoin(true)}
+    >
+      Join via Link
+    </button>
+
+    <button
+      className="btn btn-primary btn-sm"
+      onClick={() => setShowCreate(true)}
+    >
+      + Create Split
+    </button>
+  </div>
+</div>
+
 
       {/* SPLIT LIST */}
      {loadingSplits ? (
@@ -86,6 +99,9 @@ export default function SplitHome() {
       {showCreate && (
         <CreateSplitModal onClose={() => setShowCreate(false)} />
       )}
+      {showJoin && (
+  <JoinSplitViaLinkModal onClose={() => setShowJoin(false)} />
+)}
 
 
     </div>
