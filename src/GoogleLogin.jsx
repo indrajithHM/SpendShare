@@ -73,11 +73,7 @@ export default function GoogleLogin() {
       </button>
 
       {/* ERROR MESSAGE */}
-      {error && (
-        <div className="text-danger mt-3 small">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-danger mt-3 small">{error}</div>}
 
       {/* FOOT NOTE */}
       <small className="text-muted mt-4 px-3">

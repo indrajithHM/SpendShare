@@ -16,7 +16,7 @@ export default function SplitCard({ split }) {
         await navigator.share({
           title: "SpendShare Split",
           text: `Join my split: ${split.name}`,
-          url: link
+          url: link,
         });
       } catch (err) {
         // user cancelled share – ignore
@@ -29,29 +29,29 @@ export default function SplitCard({ split }) {
   };
 
   return (
-     <div className="row justify-content-center">
-        <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
-    <div
-      className="card p-3 mb-2 d-flex justify-content-between align-items-center"
-      style={{ cursor: "pointer" }}
-      onClick={() => navigate(`/split/${split.id}`)}
-    >
-      <div>
-        <strong>{split.name}</strong>
-        <br />
-        <small className="text-muted">
-          {Object.keys(split.members || {}).length} members
-        </small>
-      </div>
+    <div className="row justify-content-center">
+      <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
+        <div
+          className="card p-3 mb-2 d-flex justify-content-between align-items-center"
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate(`/split/${split.id}`)}
+        >
+          <div>
+            <strong>{split.name}</strong>
+            <br />
+            <small className="text-muted">
+              {Object.keys(split.members || {}).length} members
+            </small>
+          </div>
 
-      <button
-        className="btn btn-outline-primary btn-sm"
-        onClick={handleShare}
-      >
-        <i className="bi bi-share"></i>
-      </button>
+          <button
+            className="btn btn-outline-primary btn-sm"
+            onClick={handleShare}
+          >
+            <i className="bi bi-share"></i>
+          </button>
+        </div>
+      </div>
     </div>
-    </div>
-   </div> 
   );
 }

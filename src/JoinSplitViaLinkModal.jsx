@@ -36,13 +36,10 @@ export default function JoinSplitViaLinkModal({ onClose }) {
         return;
       }
 
-      await set(
-        ref(db, `splits/${splitId}/members/${auth.currentUser.uid}`),
-        {
-          name: auth.currentUser.displayName,
-          email: auth.currentUser.email
-        }
-      );
+      await set(ref(db, `splits/${splitId}/members/${auth.currentUser.uid}`), {
+        name: auth.currentUser.displayName,
+        email: auth.currentUser.email,
+      });
 
       onClose(); // close modal → home already visible
     } catch (e) {
@@ -53,7 +50,10 @@ export default function JoinSplitViaLinkModal({ onClose }) {
   };
 
   return (
-    <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }}>
+    <div
+      className="modal fade show d-block"
+      style={{ background: "rgba(0,0,0,0.5)" }}
+    >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">

@@ -9,7 +9,7 @@ import Header from "./Header";
 
 import SplitHome from "./SplitHome";
 import SplitDashboard from "./SplitDashboard";
-import "./App.css"
+import "./App.css";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -48,16 +48,16 @@ export default function App() {
     <>
       <Header />
       <div className="p-3">
-      <Routes>
-        {/* Main dashboard */}
-        <Route path="/" element={<Dashboard />} />
+        <Routes>
+          {/* Main dashboard */}
+          <Route path="/" element={<Dashboard />} />
 
-        {/* Split landing page */}
-        <Route path="/split" element={<SplitHome />} />
+          {/* Split landing page */}
+          <Route path="/split" element={<SplitHome />} />
 
-        {/* Shared split page */}
-        <Route path="/split/:splitId" element={<SplitDashboard />} />
-      </Routes>
+          {/* Shared split page */}
+          <Route path="/split/:splitId" element={<SplitDashboard />} />
+        </Routes>
       </div>
     </>
   );

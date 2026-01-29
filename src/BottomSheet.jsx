@@ -9,7 +9,7 @@ export default function BottomSheet({ open, onClose, title, children }) {
   useEffect(() => {
     if (!open) return;
 
-    const onKey = e => {
+    const onKey = (e) => {
       if (e.key === "Escape") onClose();
     };
 
@@ -23,8 +23,8 @@ export default function BottomSheet({ open, onClose, title, children }) {
   }, [open]);
 
   /* ---------- TOUCH / DRAG ---------- */
-  const startDrag = y => (startY.current = y);
-  const drag = y => {
+  const startDrag = (y) => (startY.current = y);
+  const drag = (y) => {
     const delta = y - startY.current;
     if (delta > 0) setOffset(delta);
   };
@@ -44,12 +44,12 @@ export default function BottomSheet({ open, onClose, title, children }) {
         aria-modal="true"
         className="bs-sheet"
         style={{ transform: `translateY(${offset}px)` }}
-        onClick={e => e.stopPropagation()}
-        onTouchStart={e => startDrag(e.touches[0].clientY)}
-        onTouchMove={e => drag(e.touches[0].clientY)}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => startDrag(e.touches[0].clientY)}
+        onTouchMove={(e) => drag(e.touches[0].clientY)}
         onTouchEnd={endDrag}
-        onMouseDown={e => startDrag(e.clientY)}
-        onMouseMove={e => e.buttons && drag(e.clientY)}
+        onMouseDown={(e) => startDrag(e.clientY)}
+        onMouseMove={(e) => e.buttons && drag(e.clientY)}
         onMouseUp={endDrag}
       >
         {/* Drag Handle */}
@@ -58,19 +58,13 @@ export default function BottomSheet({ open, onClose, title, children }) {
         {/* Header */}
         <div className="bs-header">
           <span>{title}</span>
-          <button
-            className="bs-close"
-            aria-label="Close"
-            onClick={onClose}
-          >
-           <i class="bi bi-x-circle"></i>
+          <button className="bs-close" aria-label="Close" onClick={onClose}>
+            <i class="bi bi-x-circle"></i>
           </button>
         </div>
 
         {/* Content */}
-        <div className="bs-body no-scrollbar">
-          {children}
-        </div>
+        <div className="bs-body no-scrollbar">{children}</div>
       </div>
     </div>
   );

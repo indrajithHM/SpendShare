@@ -4,23 +4,21 @@ export default function CategoryBudgetRing({
   spent,
   budget,
   percent,
-  onClick
+  onClick,
 }) {
-
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
-  const offset =
-    circumference - (Math.min(percent, 100) / 100) * circumference;
+  const offset = circumference - (Math.min(percent, 100) / 100) * circumference;
 
   const isOver = budget && spent > budget;
 
   return (
     <div className="col-4 mb-3">
       <div
-  className="card p-2 category-card text-center h-100"
-  style={{ cursor: "pointer" }}
-  onClick={onClick}
->
+        className="card p-2 category-card text-center h-100"
+        style={{ cursor: "pointer" }}
+        onClick={onClick}
+      >
         {/* ===== RING ===== */}
         <div className="position-relative d-inline-block mb-1">
           <svg width="80" height="80">
@@ -48,7 +46,7 @@ export default function CategoryBudgetRing({
                 strokeLinecap="round"
                 transform="rotate(-90 40 40)"
                 style={{
-                  transition: "stroke-dashoffset 0.6s ease"
+                  transition: "stroke-dashoffset 0.6s ease",
                 }}
               />
             )}
@@ -60,7 +58,12 @@ export default function CategoryBudgetRing({
             style={{ pointerEvents: "none" }}
           >
             <i className={`bi ${icon} fs-4`} />
-           {budget&&<div className="small"> <span>{Math.round(percent)}%</span></div>}
+            {budget && (
+              <div className="small">
+                {" "}
+                <span>{Math.round(percent)}%</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -68,28 +71,11 @@ export default function CategoryBudgetRing({
         <div className="fw-semibold small">{name}</div>
 
         <div className="small">
-           
           <span className={isOver ? "text-danger fw-semibold" : ""}>
-            ₹{spent}{budget&& (<>/₹{budget}</>)}
+            ₹{spent}
+            {budget && <>/₹{budget}</>}
           </span>
-        
         </div>
-
-        {/* {budget && (
-          <>
-            <div className="small text-muted">
-              Budget: ₹{budget}
-            </div>
-
-            <div
-              className={`small ${
-                isOver ? "text-danger fw-semibold" : "text-muted"
-              }`}
-            >
-              {Math.round(percent)}%
-            </div>
-          </>
-        )} */}
       </div>
     </div>
   );

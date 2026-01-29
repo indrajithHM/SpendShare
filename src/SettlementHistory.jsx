@@ -14,7 +14,7 @@ export default function SettlementHistory({ splitId, members }) {
       }
 
       const list = Object.values(snap.val()).sort(
-        (a, b) => b.paidAt - a.paidAt
+        (a, b) => b.paidAt - a.paidAt,
       );
       setHistory(list);
     });
@@ -29,13 +29,11 @@ export default function SettlementHistory({ splitId, members }) {
       {history.map((h, i) => (
         <div key={i} className="border-bottom py-2">
           <strong>
-            {members[h.from]?.name} paid{" "}
-            {members[h.to]?.name}
+            {members[h.from]?.name} paid {members[h.to]?.name}
           </strong>
           <br />
           <small className="text-muted">
-            ₹{h.amount} •{" "}
-            {new Date(h.paidAt).toLocaleString()}
+            ₹{h.amount} • {new Date(h.paidAt).toLocaleString()}
           </small>
         </div>
       ))}

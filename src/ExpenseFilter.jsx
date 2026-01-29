@@ -12,7 +12,7 @@ export default function ExpenseFilter({ onApply, onSearch, totalSpent }) {
           <select
             className="form-select"
             value={month}
-            onChange={e => setMonth(Number(e.target.value))}
+            onChange={(e) => setMonth(Number(e.target.value))}
           >
             {Array.from({ length: 12 }).map((_, i) => (
               <option key={i} value={i}>
@@ -27,7 +27,7 @@ export default function ExpenseFilter({ onApply, onSearch, totalSpent }) {
             className="form-control"
             type="number"
             value={year}
-            onChange={e => setYear(Number(e.target.value))}
+            onChange={(e) => setYear(Number(e.target.value))}
           />
         </div>
       </div>
@@ -37,7 +37,7 @@ export default function ExpenseFilter({ onApply, onSearch, totalSpent }) {
         className="form-control mb-2"
         placeholder="Search by description or amount"
         value={search}
-        onChange={e => {
+        onChange={(e) => {
           setSearch(e.target.value);
           onSearch(e.target.value);
         }}

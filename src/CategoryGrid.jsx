@@ -11,7 +11,7 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
     deleteCategory,
     updateIcon,
     updateBudget,
-    categoryExists
+    categoryExists,
   } = useUserCategories();
 
   /* ---------- ADD CATEGORY STATE ---------- */
@@ -24,8 +24,8 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
   const [editIcon, setEditIcon] = useState("");
   const [editBudget, setEditBudget] = useState("");
 
-  const findDefaultMeta = key =>
-    DEFAULT_CATEGORIES.find(c => c.key === key);
+  const findDefaultMeta = (key) =>
+    DEFAULT_CATEGORIES.find((c) => c.key === key);
 
   return (
     <div className="mb-3">
@@ -33,16 +33,14 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
 
       {/* ================= CATEGORY GRID ================= */}
       <div className="row g-2">
-        {allCategories.map(cat => {
+        {allCategories.map((cat) => {
           const key = cat.key;
           const defaultMeta = findDefaultMeta(key);
           const selected = value === key;
 
-          const iconClass =
-            cat.icon || defaultMeta?.icon || "bi-tag";
+          const iconClass = cat.icon || defaultMeta?.icon || "bi-tag";
 
-          const colorClass =
-            selected ? "text-white" : defaultMeta?.color || "";
+          const colorClass = selected ? "text-white" : defaultMeta?.color || "";
 
           return (
             <div className="col-4" key={key}>
@@ -59,14 +57,14 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
                     className="position-absolute top-0 end-0 m-1"
                     style={{ cursor: "pointer" }}
                     title="Edit"
-                    onClick={e => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       setEditing(cat);
                       setEditIcon(cat.icon ?? "");
                       setEditBudget(
                         cat.budget !== null && cat.budget !== undefined
                           ? String(cat.budget)
-                          : ""
+                          : "",
                       );
                     }}
                   >
@@ -75,9 +73,7 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
                 )}
 
                 <i className={`bi ${iconClass} fs-6 mb-1 ${colorClass}`} />
-                <small className={selected ? "text-white" : ""}>
-                  {key}
-                </small>
+                <small className={selected ? "text-white" : ""}>{key}</small>
               </button>
 
               {/* DELETE — custom categories only */}
@@ -127,7 +123,7 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
           className="form-control mb-3"
           placeholder="Eg: Gym"
           value={newCat}
-          onChange={e => setNewCat(e.target.value)}
+          onChange={(e) => setNewCat(e.target.value)}
         />
 
         <label className="form-label">Icon</label>
@@ -165,15 +161,13 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
         <label className="form-label">Icon</label>
         <IconPicker value={editIcon} onChange={setEditIcon} />
 
-        <label className="form-label mt-3">
-          Monthly Budget (₹)
-        </label>
+        <label className="form-label mt-3">Monthly Budget (₹)</label>
         <input
           type="number"
           className="form-control"
           placeholder="Optional"
           value={editBudget}
-          onChange={e => setEditBudget(e.target.value)}
+          onChange={(e) => setEditBudget(e.target.value)}
         />
 
         <button
@@ -184,18 +178,13 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
             const updates = [];
 
             // ✅ Update icon only if changed
-            if (
-              editIcon &&
-              editIcon !== editing.icon
-            ) {
+            if (editIcon && editIcon !== editing.icon) {
               updates.push(updateIcon(editing.key, editIcon));
             }
 
             // ✅ Update budget only if user entered something
             if (editBudget !== "") {
-              updates.push(
-                updateBudget(editing.key, Number(editBudget))
-              );
+              updates.push(updateBudget(editing.key, Number(editBudget)));
             }
 
             // ✅ Nothing changed → just close
@@ -220,7 +209,7 @@ export default function CategoryGrid({ value, onChange, mode = "manage" }) {
 function IconPicker({ value, onChange }) {
   return (
     <div className="d-flex flex-wrap gap-2">
-      {CATEGORY_ICONS.map(icon => (
+      {CATEGORY_ICONS.map((icon) => (
         <button
           key={icon}
           type="button"

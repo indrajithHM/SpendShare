@@ -15,16 +15,16 @@ export default function CreateSplit() {
       members: {
         [auth.currentUser.uid]: {
           name: auth.currentUser.displayName,
-          email: auth.currentUser.email
-        }
+          email: auth.currentUser.email,
+        },
       },
-      expenses: {}
+      expenses: {},
     });
 
     e.target.reset();
 
     alert(
-      `Split created!\n\nShare this link:\n${window.location.origin}/split/${splitRef.key}`
+      `Split created!\n\nShare this link:\n${window.location.origin}/split/${splitRef.key}`,
     );
   };
 
@@ -39,9 +39,7 @@ export default function CreateSplit() {
         required
       />
 
-      <button className="btn btn-primary w-100">
-        Create Split
-      </button>
+      <button className="btn btn-primary w-100">Create Split</button>
     </form>
   );
 }

@@ -17,10 +17,8 @@ export default function Header() {
     <header className="border-bottom bg-white sticky-top">
       <div className="container">
         <div className="d-flex align-items-center justify-content-between py-2">
-
           {/* LEFT: BACK + LOGO + NAME */}
           <div className="d-flex align-items-center">
-
             {/* {showBack && (
               <button
                 className="btn btn-link me-2 p-0"
@@ -44,7 +42,7 @@ export default function Header() {
                 style={{
                   height: "40px",
                   width: "40px",
-                  objectFit: "contain"
+                  objectFit: "contain",
                 }}
                 className="me-2"
               />
@@ -56,14 +54,10 @@ export default function Header() {
           </div>
 
           {/* RIGHT: LOGOUT */}
-          <button
-            className="btn btn-outline-danger btn-sm"
-            onClick={logout}
-          >
+          <button className="btn btn-outline-danger btn-sm" onClick={logout}>
             <i className="bi bi-box-arrow-right me-1"></i>
             Logout
           </button>
-
         </div>
       </div>
     </header>

@@ -15,8 +15,8 @@ export const CATEGORY_ICONS = [
   "bi-dumbbell",
   "bi bi-bag-plus-fill",
   "bi bi-credit-card",
-   "bi bi-wallet2",
-    "bi-house-door",
-    "bi-lightning", 
+  "bi bi-wallet2",
+  "bi-house-door",
+  "bi-lightning",
 
 ];

@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 export default function BottomNav({
   mode = "dashboard", // dashboard | split
   active,
-  setActive
+  setActive,
 }) {
   const navigate = useNavigate();
 
-  const go = tab => {
+  const go = (tab) => {
     if (mode === "dashboard") {
       if (tab === "SPLIT") {
         navigate("/split");
@@ -20,7 +20,7 @@ export default function BottomNav({
         navigate("/split");
       } else {
         navigate("/", {
-          state: { tab }
+          state: { tab },
         });
       }
     }
@@ -54,10 +54,7 @@ export default function BottomNav({
 
 function NavItem({ icon, label, active, onClick }) {
   return (
-    <button
-      className={`nav-item ${active ? "active" : ""}`}
-      onClick={onClick}
-    >
+    <button className={`nav-item ${active ? "active" : ""}`} onClick={onClick}>
       <i className={`bi bi-${icon}`}></i>
       <span>{label}</span>
     </button>

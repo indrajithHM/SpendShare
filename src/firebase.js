@@ -4,7 +4,7 @@ import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
 
-   apiKey: "AIzaSyDK0ALSxU33YCG2OsxBJ9wLJSOrqFo_vXg",
+  apiKey: "AIzaSyDK0ALSxU33YCG2OsxBJ9wLJSOrqFo_vXg",
   authDomain: "spendshare-app.firebaseapp.com",
   databaseURL: "https://spendshare-app-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "spendshare-app",

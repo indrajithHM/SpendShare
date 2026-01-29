@@ -3,7 +3,7 @@ export default function SummaryCards({
   credit,
   banks,
   period,
-  showDetails
+  showDetails,
 }) {
   const monthName =
     period?.month !== null
@@ -13,14 +13,14 @@ export default function SummaryCards({
   // Sum duplicate bank names (case-insensitive)
   const uniqueBanks = Object.entries(banks).reduce((acc, [bank, values]) => {
     const bankName = bank.trim().toLowerCase(); // Normalize to lowercase
-    
+
     if (!acc[bankName]) {
       acc[bankName] = { debit: 0, credit: 0, displayName: bank.trim() };
     }
-    
+
     acc[bankName].debit += values.debit || 0;
     acc[bankName].credit += values.credit || 0;
-    
+
     return acc;
   }, {});
 

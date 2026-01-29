@@ -4,7 +4,7 @@ export default function UserBalanceCards({ members, expenses, settlements }) {
   const { settlement } = calculateSettlement(
     members,
     Object.values(expenses || {}),
-    settlements
+    settlements,
   );
 
   return (
@@ -19,8 +19,8 @@ export default function UserBalanceCards({ members, expenses, settlements }) {
                 balance > 0
                   ? "border-success"
                   : balance < 0
-                  ? "border-danger"
-                  : "border-secondary"
+                    ? "border-danger"
+                    : "border-secondary"
               }`}
             >
               <strong>{m.name}</strong>
@@ -29,8 +29,8 @@ export default function UserBalanceCards({ members, expenses, settlements }) {
                   balance > 0
                     ? "text-success"
                     : balance < 0
-                    ? "text-danger"
-                    : "text-muted"
+                      ? "text-danger"
+                      : "text-muted"
                 }`}
               >
                 {balance > 0 && `Gets ₹${balance.toFixed(2)}`}

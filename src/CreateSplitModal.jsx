@@ -26,11 +26,11 @@ export default function CreateSplitModal({ onClose }) {
         [auth.currentUser.uid]: {
           name: auth.currentUser.displayName,
           email: auth.currentUser.email,
-          upi: "" // can be updated later
-        }
+          upi: "", // can be updated later
+        },
       },
 
-      expenses: {}
+      expenses: {},
     });
 
     setLink(`${window.location.origin}/split/${splitRef.key}`);
@@ -44,7 +44,6 @@ export default function CreateSplitModal({ onClose }) {
     >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content p-3">
-
           <h5 className="mb-3">Create Split</h5>
 
           {!link ? (
@@ -56,20 +55,14 @@ export default function CreateSplitModal({ onClose }) {
                 required
               />
 
-              <button className="btn btn-primary w-100">
-                Create Split
-              </button>
+              <button className="btn btn-primary w-100">Create Split</button>
             </form>
           ) : (
             <>
               <p className="mb-2 fw-semibold">Share this link</p>
 
               <div className="input-group mb-3">
-                <input
-                  className="form-control"
-                  value={link}
-                  readOnly
-                />
+                <input className="form-control" value={link} readOnly />
                 <button
                   type="button"
                   className="btn btn-outline-secondary"
@@ -79,15 +72,11 @@ export default function CreateSplitModal({ onClose }) {
                 </button>
               </div>
 
-              <button
-                className="btn btn-success w-100"
-                onClick={onClose}
-              >
+              <button className="btn btn-success w-100" onClick={onClose}>
                 Done
               </button>
             </>
           )}
-
         </div>
       </div>
     </div>

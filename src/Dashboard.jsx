@@ -5,7 +5,7 @@ import {
   startAt,
   endAt,
   onValue,
-  remove
+  remove,
 } from "firebase/database";
 import { auth, db } from "./firebase";
 
@@ -19,25 +19,19 @@ import CategoryBudgetRing from "./CategoryBudgetRing";
 import CategoryExpenseList from "./CategoryExpenseList";
 import { useUserCategories } from "./useUserCategories";
 
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useDeferredValue,
-  memo
-} from "react";
+import { useState, useEffect, useMemo, useDeferredValue, memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 /* ---------- DATE FORMAT ---------- */
-const formatDate = ts => {
+const formatDate = (ts) => {
   const d = new Date(ts);
   return `${String(d.getDate()).padStart(2, "0")}/${String(
-    d.getMonth() + 1
+    d.getMonth() + 1,
   ).padStart(2, "0")}/${d.getFullYear()}`;
 };
 
 /* ---------- GROUP BY DATE ---------- */
-const groupByDate = expenses =>
+const groupByDate = (expenses) =>
   expenses.reduce((acc, e) => {
     const key = formatDate(e.timestamp);
     if (!acc[key]) acc[key] = [];
@@ -59,9 +53,7 @@ const ExpenseItem = memo(({ e, onDelete }) => (
     <div className="text-end">
       <span
         className={
-          e.type === "DEBIT"
-            ? "text-danger fw-bold"
-            : "text-success fw-bold"
+          e.type === "DEBIT" ? "text-danger fw-bold" : "text-success fw-bold"
         }
       >
         ₹{e.amount}
@@ -95,7 +87,7 @@ export default function Dashboard() {
   const [summary, setSummary] = useState({
     debit: 0,
     credit: 0,
-    banks: {}
+    banks: {},
   });
 
   const [period, setPeriod] = useState({ month: null, year: null });
@@ -124,10 +116,10 @@ export default function Dashboard() {
       ref(db, `expenses/${auth.currentUser.uid}`),
       orderByChild("timestamp"),
       startAt(start),
-      endAt(end)
+      endAt(end),
     );
 
-    const unsub = onValue(q, snap => {
+    const unsub = onValue(q, (snap) => {
       if (!snap.exists()) {
         setExpenses([]);
         setFiltered([]);
@@ -173,7 +165,7 @@ export default function Dashboard() {
     const s = deferredSearch.toLowerCase();
 
     setFiltered(
-      expenses.filter(e => {
+      expenses.filter((e) => {
         const matchesText =
           e.description.toLowerCase().includes(s) ||
           String(e.amount).includes(s);
@@ -182,12 +174,12 @@ export default function Dashboard() {
           selectedCategory === null || e.category === selectedCategory;
 
         return matchesText && matchesCategory;
-      })
+      }),
     );
   }, [deferredSearch, expenses, selectedCategory]);
 
   /* ---------- DELETE ---------- */
-  const deleteExpense = async id => {
+  const deleteExpense = async (id) => {
     if (!window.confirm("Delete this expense?")) return;
     await remove(ref(db, `expenses/${auth.currentUser.uid}/${id}`));
   };
@@ -199,13 +191,13 @@ export default function Dashboard() {
     () =>
       filtered.reduce(
         (sum, e) => (e.type === "DEBIT" ? sum + e.amount : sum),
-        0
+        0,
       ),
-    [filtered]
+    [filtered],
   );
 
   const categoryBudgetSummary = useMemo(() => {
-    return allCategories.map(cat => {
+    return allCategories.map((cat) => {
       let spent = 0;
 
       for (const e of filtered) {
@@ -221,7 +213,7 @@ export default function Dashboard() {
         icon: cat.icon,
         spent,
         budget,
-        percent: budget ? Math.min((spent / budget) * 100, 150) : 0
+        percent: budget ? Math.min((spent / budget) * 100, 150) : 0,
       };
     });
   }, [allCategories, filtered]);
@@ -248,7 +240,7 @@ export default function Dashboard() {
           {view === "SUMMARY" && (
             <>
               <div className="row mt-3">
-                {categoryBudgetSummary.map(cat => (
+                {categoryBudgetSummary.map((cat) => (
                   <CategoryBudgetRing
                     key={cat.key}
                     {...cat}
@@ -286,7 +278,7 @@ export default function Dashboard() {
               >
                 <CategoryGrid
                   value={selectedCategory}
-                  onChange={cat => {
+                  onChange={(cat) => {
                     setSelectedCategory(cat);
                     setShowCategoryFilter(false);
                   }}
@@ -321,10 +313,8 @@ export default function Dashboard() {
               {Object.entries(grouped).map(([date, items]) => {
                 const dayTotal = items.reduce(
                   (sum, e) =>
-                    e.type === "DEBIT"
-                      ? sum + e.amount
-                      : sum - e.amount,
-                  0
+                    e.type === "DEBIT" ? sum + e.amount : sum - e.amount,
+                  0,
                 );
 
                 return (
@@ -340,7 +330,7 @@ export default function Dashboard() {
                     </div>
 
                     <ul className="list-group">
-                      {items.map(e => (
+                      {items.map((e) => (
                         <ExpenseItem
                           key={e.id}
                           e={e}

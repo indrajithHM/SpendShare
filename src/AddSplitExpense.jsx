@@ -26,9 +26,9 @@ export default function AddSplitExpense({ splitId, members }) {
 
   /* ===== TOGGLE MEMBER ===== */
   const toggleSelect = (id) => {
-    setSelected(prev => ({
+    setSelected((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
@@ -59,7 +59,7 @@ export default function AddSplitExpense({ splitId, members }) {
       }
 
       const perHead = amt / selectedIds.length;
-      selectedIds.forEach(id => {
+      selectedIds.forEach((id) => {
         participants[id] = { share: perHead };
       });
     }
@@ -70,7 +70,7 @@ export default function AddSplitExpense({ splitId, members }) {
 
       memberEntries.forEach(([id]) => {
         const value = Number(shares[id] || 0);
-        
+
         // ✅ Only add members with non-zero shares
         if (value > 0) {
           participants[id] = { share: value };
@@ -95,7 +95,7 @@ export default function AddSplitExpense({ splitId, members }) {
       paidBy: uid,
       splitType,
       participants,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     });
 
     /* ===== RESET ===== */
@@ -114,7 +114,7 @@ export default function AddSplitExpense({ splitId, members }) {
         className="form-control mb-2"
         placeholder="Description"
         value={desc}
-        onChange={e => setDesc(e.target.value)}
+        onChange={(e) => setDesc(e.target.value)}
       />
 
       <input
@@ -122,12 +122,12 @@ export default function AddSplitExpense({ splitId, members }) {
         type="number"
         placeholder="Amount"
         value={amount}
-        onChange={e => setAmount(e.target.value)}
+        onChange={(e) => setAmount(e.target.value)}
       />
 
       {/* ===== SPLIT TYPE ===== */}
       <div className="mb-2">
-        {["EQUAL_ALL", "EQUAL_SELECTED", "UNEQUAL"].map(type => (
+        {["EQUAL_ALL", "EQUAL_SELECTED", "UNEQUAL"].map((type) => (
           <div className="form-check" key={type}>
             <input
               type="radio"
@@ -155,9 +155,7 @@ export default function AddSplitExpense({ splitId, members }) {
                 checked={!!selected[id]}
                 onChange={() => toggleSelect(id)}
               />
-              <label className="form-check-label">
-                {m.name}
-              </label>
+              <label className="form-check-label">{m.name}</label>
             </div>
           ))}
         </div>
@@ -174,10 +172,10 @@ export default function AddSplitExpense({ splitId, members }) {
                 className="form-control form-control-sm w-50"
                 placeholder="₹"
                 value={shares[id] ?? ""}
-                onChange={e =>
-                  setShares(prev => ({
+                onChange={(e) =>
+                  setShares((prev) => ({
                     ...prev,
-                    [id]: e.target.value
+                    [id]: e.target.value,
                   }))
                 }
               />

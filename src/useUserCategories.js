@@ -16,25 +16,25 @@ export function useUserCategories() {
   }, []);
 
   /* ---------- MERGED CATEGORY LIST ---------- */
- const allCategories = [
-  ...DEFAULT_CATEGORIES.map(c => ({
-    key: c.key,
-    icon: c.icon,
-    color: c.color,
-    budget: userCats[c.key]?.budget ?? null,
-    isDefault: true
-  })),
-  ...Object.entries(userCats)
-    .filter(([key]) =>
-      !DEFAULT_CATEGORIES.some(d => d.key === key)
-    )
-    .map(([key, val]) => ({
-      key,
-      icon: val.icon,
-      budget: val.budget ?? null,
-      isDefault: false
-    }))
-];
+  const allCategories = [
+    ...DEFAULT_CATEGORIES.map(c => ({
+      key: c.key,
+      icon: c.icon,
+      color: c.color,
+      budget: userCats[c.key]?.budget ?? null,
+      isDefault: true
+    })),
+    ...Object.entries(userCats)
+      .filter(([key]) =>
+        !DEFAULT_CATEGORIES.some(d => d.key === key)
+      )
+      .map(([key, val]) => ({
+        key,
+        icon: val.icon,
+        budget: val.budget ?? null,
+        isDefault: false
+      }))
+  ];
 
   /* ---------- PREVENT DUPLICATES ---------- */
   const categoryExists = (name) =>

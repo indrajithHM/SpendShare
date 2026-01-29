@@ -7,7 +7,7 @@ export default function SettlementView({
   splitId,
   expenses,
   members,
-  settlements = {}
+  settlements = {},
 }) {
   const uid = auth.currentUser?.uid;
   if (!uid) return null;
@@ -15,10 +15,10 @@ export default function SettlementView({
   const { settlement } = calculateSettlement(
     members,
     Object.values(expenses || {}),
-    settlements
+    settlements,
   );
 
-  const round2 = n => Math.round(n * 100) / 100;
+  const round2 = (n) => Math.round(n * 100) / 100;
 
   const debtors = Object.entries(settlement)
     .filter(([, v]) => v < -0.01)
@@ -31,12 +31,12 @@ export default function SettlementView({
   const userBalance = round2(settlement[uid] ?? 0);
 
   const isAllSettled = Object.values(settlement).every(
-    v => Math.abs(v) < 0.01
+    (v) => Math.abs(v) < 0.01,
   );
 
   const upiLink = (upi, amount, name) =>
     `upi://pay?pa=${upi}&pn=${encodeURIComponent(
-      name
+      name,
     )}&am=${amount.toFixed(2)}&cu=INR`;
 
   return (
@@ -45,9 +45,7 @@ export default function SettlementView({
 
       {/* ✅ ALL SETTLED */}
       {isAllSettled && (
-        <p className="text-muted mb-0 text-center">
-          All settled 🎉
-        </p>
+        <p className="text-muted mb-0 text-center">All settled 🎉</p>
       )}
 
       {/* ℹ️ USER IS CREDITOR */}
@@ -58,13 +56,12 @@ export default function SettlementView({
       )}
 
       {/* 🔻 USER OWES MONEY */}
-      {!isAllSettled && userBalance < 0 &&
-        debtors.map(debtor =>
+      {!isAllSettled &&
+        userBalance < 0 &&
+        debtors.map((debtor) =>
           debtor.id === uid
-            ? creditors.map(creditor => {
-                const maxPay = round2(
-                  Math.min(debtor.amount, creditor.amount)
-                );
+            ? creditors.map((creditor) => {
+                const maxPay = round2(Math.min(debtor.amount, creditor.amount));
 
                 if (maxPay <= 0) return null;
 
@@ -82,9 +79,8 @@ export default function SettlementView({
                   />
                 );
               })
-            : null
-        )
-      }
+            : null,
+        )}
     </div>
   );
 }
@@ -96,9 +92,9 @@ function PartialPayRow({
   debtor,
   creditor,
   uid,
-  upiLink
+  upiLink,
 }) {
-  const round2 = n => Math.round(n * 100) / 100;
+  const round2 = (n) => Math.round(n * 100) / 100;
   const [amt, setAmt] = useState(maxPay);
 
   useEffect(() => {
@@ -123,7 +119,7 @@ function PartialPayRow({
         step="0.01"
         min="0.01"
         max={maxPay}
-        onChange={e => setAmt(round2(Number(e.target.value)))}
+        onChange={(e) => setAmt(round2(Number(e.target.value)))}
       />
 
       <div className="d-flex gap-2 mt-2">
@@ -139,15 +135,12 @@ function PartialPayRow({
           onClick={async () => {
             if (amt <= 0 || amt > maxPay) return;
 
-            await push(
-              ref(db, `splits/${splitId}/settlements`),
-              {
-                from: fromId,
-                to: toId,
-                amount: amt,
-                paidAt: Date.now()
-              }
-            );
+            await push(ref(db, `splits/${splitId}/settlements`), {
+              from: fromId,
+              to: toId,
+              amount: amt,
+              paidAt: Date.now(),
+            });
           }}
         >
           Mark Paid
