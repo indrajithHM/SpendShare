@@ -26,6 +26,7 @@ export default function SplitDashboard() {
 
   const uid = auth.currentUser?.uid;
 
+  
   const goBack = () => {
     if (window.history.length > 1) {
       navigate(-1);

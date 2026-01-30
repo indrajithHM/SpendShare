@@ -11,6 +11,11 @@ const todayISO = () => {
   return d.toISOString().split("T")[0];
 };
 
+const getMonthKey = (timestamp) => {
+  const d = new Date(timestamp);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+
 export default function AddExpense() {
   const [category, setCategory] = useState("Groceries");
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -38,7 +43,9 @@ export default function AddExpense() {
       createdAt: Date.now(),
     };
 
-    await push(ref(db, `expenses/${auth.currentUser.uid}`), data);
+    const monthKey = getMonthKey(timestamp);
+
+    await push(ref(db, `expenses/${auth.currentUser.uid}/${monthKey}`), data);
 
     f.reset();
     f.date.value = todayISO();

@@ -1,12 +1,4 @@
-import {
-  ref,
-  query,
-  orderByChild,
-  startAt,
-  endAt,
-  onValue,
-  remove,
-} from "firebase/database";
+import { ref, onValue, remove } from "firebase/database";
 import { auth, db } from "./firebase";
 
 import AddExpense from "./AddExpense";
@@ -38,6 +30,10 @@ const groupByDate = (expenses) =>
     acc[key].push(e);
     return acc;
   }, {});
+const getMonthKey = (timestamp) => {
+  const d = new Date(timestamp);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
 
 /* ---------- MEMOIZED EXPENSE ITEM ---------- */
 const ExpenseItem = memo(({ e, onDelete }) => (
@@ -109,16 +105,12 @@ export default function Dashboard() {
     setLoadingExpenses(true);
     setPeriod({ month, year });
 
-    const start = new Date(year, month, 1).getTime();
-    const end = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
+    // const start = new Date(year, month, 1).getTime();
+    // const end = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
 
-    const q = query(
-      ref(db, `expenses/${auth.currentUser.uid}`),
-      orderByChild("timestamp"),
-      startAt(start),
-      endAt(end),
-    );
+    const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
+    const q = ref(db, `expenses/${auth.currentUser.uid}/${monthKey}`);
     const unsub = onValue(q, (snap) => {
       if (!snap.exists()) {
         setExpenses([]);
@@ -181,7 +173,12 @@ export default function Dashboard() {
   /* ---------- DELETE ---------- */
   const deleteExpense = async (id) => {
     if (!window.confirm("Delete this expense?")) return;
-    await remove(ref(db, `expenses/${auth.currentUser.uid}/${id}`));
+    const expense = expenses.find((e) => e.id === id);
+    if (!expense) return;
+
+    const monthKey = getMonthKey(expense.timestamp);
+
+    await remove(ref(db, `expenses/${auth.currentUser.uid}/${monthKey}/${id}`));
   };
 
   /* ---------- MEMOIZED COMPUTATIONS ---------- */
