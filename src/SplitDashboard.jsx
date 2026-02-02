@@ -25,6 +25,7 @@ export default function SplitDashboard() {
   const [loadingSplit, setLoadingSplit] = useState(true);
 
   const uid = auth.currentUser?.uid;
+  
 
   
   const goBack = () => {
@@ -53,6 +54,7 @@ export default function SplitDashboard() {
       setUpiSaved(false);
     }
   }, [split, uid]);
+  
 
   if (loadingSplit) {
     return (
@@ -118,7 +120,9 @@ export default function SplitDashboard() {
       // newest first
       return (b.createdAt || 0) - (a.createdAt || 0);
     });
-
+const userSettlements = Object.entries(settlements).filter(
+  ([_, s]) => s.from === uid || s.to === uid
+);
   return (
     <div className="row justify-content-center">
       <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
@@ -262,9 +266,13 @@ export default function SplitDashboard() {
                 {/* ================================================= */}
                 {/* ================= PAYMENT HISTORY ============== */}
                 {/* ================================================= */}
-                {Object.keys(settlements).length > 0 &&isMember && (
-                  <SettlementHistory splitId={splitId} members={members} />
-                )}
+              {userSettlements.length > 0 && (
+  <SettlementHistory
+    splitId={splitId}
+    members={members}
+    settlements={userSettlements}
+  />
+)}
 
                 {/* ---------- MEMBERS ---------- */}
                 <div className="card p-3 mb-5">

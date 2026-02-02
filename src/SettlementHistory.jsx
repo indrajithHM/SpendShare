@@ -1,5 +1,5 @@
 import { onValue, ref } from "firebase/database";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
 import { useEffect, useState } from "react";
 
 export default function SettlementHistory({ splitId, members }) {
@@ -7,15 +7,25 @@ export default function SettlementHistory({ splitId, members }) {
 
   useEffect(() => {
     const r = ref(db, `splits/${splitId}/settlements`);
+
     return onValue(r, (snap) => {
       if (!snap.exists()) {
         setHistory([]);
         return;
       }
 
-      const list = Object.values(snap.val()).sort(
-        (a, b) => b.paidAt - a.paidAt,
-      );
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        setHistory([]);
+        return;
+      }
+
+      const list = Object.values(snap.val())
+        .filter(
+          (s) => s.from === uid || s.to === uid
+        )
+        .sort((a, b) => b.paidAt - a.paidAt);
+
       setHistory(list);
     });
   }, [splitId]);
