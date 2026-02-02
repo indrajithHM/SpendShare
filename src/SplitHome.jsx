@@ -15,8 +15,10 @@ export default function SplitHome() {
 
   useEffect(() => {
     let unsubscribeDb = null;
+    
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth,async (user) => {
+    
       if (!user) {
         setSplits([]);
         setLoadingSplits(false); // auth resolved, no user
