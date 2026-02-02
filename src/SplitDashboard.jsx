@@ -262,7 +262,7 @@ export default function SplitDashboard() {
                 {/* ================================================= */}
                 {/* ================= PAYMENT HISTORY ============== */}
                 {/* ================================================= */}
-                {Object.keys(settlements).length > 0 && (
+                {Object.keys(settlements).length > 0 &&isMember && (
                   <SettlementHistory splitId={splitId} members={members} />
                 )}
 
