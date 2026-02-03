@@ -1,16 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebase";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import logo from "./assets/SpendShare.png";
 
 export default function Header({ user }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   if (!user) return null;
 
   const logout = async () => {
+    setOpen(false);
     await signOut(auth);
     navigate("/");
   };
@@ -19,6 +21,26 @@ export default function Header({ user }) {
     setOpen(false);
     navigate("/profile");
   };
+
+  /* 🔴 Close dropdown when clicking outside */
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
 
   return (
     <header className="border-bottom bg-white sticky-top">
@@ -38,16 +60,17 @@ export default function Header({ user }) {
           </div>
 
           {/* PROFILE */}
-          <div className="position-relative">
+          <div className="position-relative" ref={dropdownRef}>
             <button
               className="btn btn-light d-flex align-items-center"
-              onClick={() => setOpen(!open)}
+              onClick={() => setOpen((v) => !v)}
             >
               <img
                 src={user.photoURL}
                 className="rounded-circle me-2"
                 width={32}
                 height={32}
+                alt="avatar"
               />
               <span>{user.displayName?.split(" ")[0]}</span>
             </button>
