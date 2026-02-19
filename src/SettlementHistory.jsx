@@ -33,7 +33,7 @@ export default function SettlementHistory({ splitId, members }) {
   if (history.length === 0) return null;
 
   return (
-    <div className="card p-3 mt-3">
+    <div className="card p-3 mb-3">
       <h6 className="mb-2">Settlement History</h6>
 
       {history.map((h, i) => (

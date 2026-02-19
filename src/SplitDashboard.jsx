@@ -25,9 +25,7 @@ export default function SplitDashboard() {
   const [loadingSplit, setLoadingSplit] = useState(true);
 
   const uid = auth.currentUser?.uid;
-  
 
-  
   const goBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -54,7 +52,6 @@ export default function SplitDashboard() {
       setUpiSaved(false);
     }
   }, [split, uid]);
-  
 
   if (loadingSplit) {
     return (
@@ -120,12 +117,12 @@ export default function SplitDashboard() {
       // newest first
       return (b.createdAt || 0) - (a.createdAt || 0);
     });
-const userSettlements = Object.entries(settlements).filter(
-  ([_, s]) => s.from === uid || s.to === uid
-);
+  const userSettlements = Object.entries(settlements).filter(
+    ([_, s]) => s.from === uid || s.to === uid,
+  );
   return (
     <div className="row justify-content-center">
-      <div className="col-12 col-md-10 col-lg-8 col-xl-6 p-3">
+      <div className="col-12 col-md-10 col-lg-8 col-xl-6">
         <div>
           <div className="container py-3">
             {/* ================= STICKY HEADER ================= */}
@@ -197,16 +194,34 @@ const userSettlements = Object.entries(settlements).filter(
                   expenses={expenses}
                   settlements={settlements}
                 />
+                {/* ================================================= */}
+                {/* ================= SETTLEMENT =================== */}
+                {/* ================================================= */}
+                <div className="py-3">
+                  <SettlementView
+                    splitId={splitId}
+                    expenses={expenses}
+                    members={members}
+                    settlements={settlements}
+                  />
+                </div>
+                 {/* ================================================= */}
+                {/* ================= PAYMENT HISTORY ============== */}
+                {/* ================================================= */}
+                {userSettlements.length > 0 && (
+                  <SettlementHistory
+                    splitId={splitId}
+                    members={members}
+                    settlements={userSettlements}
+                  />
+                )}
 
                 {/* ================================================= */}
                 {/* ================= EXPENSES ===================== */}
                 {/* ================================================= */}
-                <div className="card p-3 mt-3">
+                <div className="card p-3 mt-3 mb-3">
                   <h6>Expenses</h6>
 
-                  {/* {Object.keys(expenses).length === 0 && (
-              <p className="text-muted">No expenses assigned to you</p>
-            )} */}
                   {visibleExpenses.length === 0 && (
                     <p className="text-muted">No expenses assigned to you</p>
                   )}
@@ -251,29 +266,8 @@ const userSettlements = Object.entries(settlements).filter(
                   ))}
                 </div>
 
-                {/* ================================================= */}
-                {/* ================= SETTLEMENT =================== */}
-                {/* ================================================= */}
-                <div className="py-3">
-                  <SettlementView
-                    splitId={splitId}
-                    expenses={expenses}
-                    members={members}
-                    settlements={settlements}
-                  />
-                </div>
-
-                {/* ================================================= */}
-                {/* ================= PAYMENT HISTORY ============== */}
-                {/* ================================================= */}
-              {userSettlements.length > 0 && (
-  <SettlementHistory
-    splitId={splitId}
-    members={members}
-    settlements={userSettlements}
-  />
-)}
-
+                
+               
                 {/* ---------- MEMBERS ---------- */}
                 <div className="card p-3 mb-5">
                   <h6>Members</h6>

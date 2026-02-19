@@ -104,7 +104,7 @@ function PartialPayRow({
   if (fromId !== uid) return null;
 
   return (
-    <div className="border-bottom py-2">
+    <div className="border-bottom py-2 mb-3">
       <div className="d-flex justify-content-between">
         <strong>
           {debtor.name} → {creditor.name}
