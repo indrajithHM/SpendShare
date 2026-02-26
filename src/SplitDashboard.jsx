@@ -124,7 +124,7 @@ export default function SplitDashboard() {
     <div className="row justify-content-center">
       <div className="col-12 col-md-10 col-lg-8 col-xl-6">
         <div>
-          <div className="container py-3">
+          <div className="container py-3 mt-3">
             {/* ================= STICKY HEADER ================= */}
             <div className="sticky-header bg-white">
               <div className="d-flex justify-content-between align-items-center py-2">

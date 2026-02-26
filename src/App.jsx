@@ -11,6 +11,7 @@ import Header from "./Header";
 import Profile from "./Profile";
 import SplitHome from "./SplitHome";
 import SplitDashboard from "./SplitDashboard";
+import { registerPush } from "./registerPush";
 
 import "./App.css";
 
@@ -24,6 +25,7 @@ async function ensureUserProfile(user) {
       createdAt: Date.now()
     });
   }
+  await registerPush(user.uid);
 }
 
 export default function App() {
@@ -34,6 +36,7 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         await ensureUserProfile(firebaseUser);
+        
       }
 
       setUser(firebaseUser);

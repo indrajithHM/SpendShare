@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
-
   apiKey: "AIzaSyDK0ALSxU33YCG2OsxBJ9wLJSOrqFo_vXg",
   authDomain: "spendshare-app.firebaseapp.com",
   databaseURL: "https://spendshare-app-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -15,6 +15,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// ✅ THESE EXPORTS WERE MISSING
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+export const messaging = getMessaging(app);

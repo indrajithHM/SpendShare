@@ -1,4 +1,4 @@
-import { push, ref } from "firebase/database";
+import { push, ref,get } from "firebase/database";
 import { db, auth } from "./firebase";
 import { useState, useEffect } from "react";
 
@@ -97,6 +97,7 @@ export default function AddSplitExpense({ splitId, members }) {
       participants,
       createdAt: Date.now(),
     });
+    await notifyMembers(participants,amt);
 
     /* ===== RESET ===== */
     setDesc("");
@@ -105,7 +106,30 @@ export default function AddSplitExpense({ splitId, members }) {
     setSelected({});
     setSplitType("EQUAL_ALL");
   };
+  const notifyMembers = async (participants, amt) => {
+  try {
+    const participantIds = Object.keys(participants).filter(
+      id => id !== uid
+    );
 
+    if (participantIds.length === 0) return;
+
+    await fetch("https://spendshare-backend.onrender.com/send-notification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        participantIds,
+        title: "New Expense Added",
+        body: `${members[uid]?.name} added ₹${amt}`
+      })
+    });
+
+  } catch (err) {
+    console.error("Notification failed:", err);
+  }
+};
   return (
     <div className="card p-3 mb-3">
       <h6>Add Expense</h6>
