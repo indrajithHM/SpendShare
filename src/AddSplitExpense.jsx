@@ -111,21 +111,23 @@ export default function AddSplitExpense({ splitId, members }) {
     const participantIds = Object.keys(participants).filter(
       id => id !== uid
     );
-
+    
     if (participantIds.length === 0) return;
 
     await fetch("https://spendshare-backend.onrender.com/send-notification", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        participantIds,
-        title: "New Expense Added",
-        body: `${members[uid]?.name} added ₹${amt}`
-      })
-    });
-
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+     participantIds,
+          splitId, // ⭐ required for deep linking
+          title: "New Expense Added",
+          body: `${members[uid]?.name} added ₹${amt}`,
+  })
+  
+});
+  //console.log("Notification sent",body);
   } catch (err) {
     console.error("Notification failed:", err);
   }
