@@ -1,4 +1,4 @@
-import { push, ref,get } from "firebase/database";
+import { push, ref, get } from "firebase/database";
 import { db, auth } from "./firebase";
 import { useState, useEffect } from "react";
 
@@ -10,6 +10,7 @@ export default function AddSplitExpense({ splitId, members }) {
   const [splitType, setSplitType] = useState("EQUAL_ALL");
   const [selected, setSelected] = useState({});
   const [shares, setShares] = useState({});
+  const [paidBy, setPaidBy] = useState(uid); // ⭐ NEW
 
   const memberEntries = Object.entries(members || {});
 
@@ -71,7 +72,6 @@ export default function AddSplitExpense({ splitId, members }) {
       memberEntries.forEach(([id]) => {
         const value = Number(shares[id] || 0);
 
-        // ✅ Only add members with non-zero shares
         if (value > 0) {
           participants[id] = { share: value };
           total += value;
@@ -92,12 +92,12 @@ export default function AddSplitExpense({ splitId, members }) {
     await push(ref(db, `splits/${splitId}/expenses`), {
       description: desc,
       amount: amt,
-      paidBy: uid,
+      paidBy,          // ⭐ uses selected paidBy instead of hardcoded uid
       splitType,
       participants,
       createdAt: Date.now(),
     });
-    await notifyMembers(participants,amt);
+    await notifyMembers(participants, amt);
 
     /* ===== RESET ===== */
     setDesc("");
@@ -105,33 +105,34 @@ export default function AddSplitExpense({ splitId, members }) {
     setShares({});
     setSelected({});
     setSplitType("EQUAL_ALL");
+    setPaidBy(uid);    // ⭐ reset back to current user
   };
-  const notifyMembers = async (participants, amt) => {
-  try {
-    const participantIds = Object.keys(participants).filter(
-      id => id !== uid
-    );
-    
-    if (participantIds.length === 0) return;
 
-    await fetch("https://spendshare-backend.onrender.com/send-notification", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-     participantIds,
-          splitId, // ⭐ required for deep linking
+  const notifyMembers = async (participants, amt) => {
+    try {
+      const participantIds = Object.keys(participants).filter(
+        (id) => id !== uid
+      );
+
+      if (participantIds.length === 0) return;
+
+      await fetch("https://spendshare-backend.onrender.com/send-notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          participantIds,
+          splitId,
           title: "New Expense Added",
-          body: `${members[uid]?.name} added ₹${amt}`,
-  })
-  
-});
-  //console.log("Notification sent",body);
-  } catch (err) {
-    console.error("Notification failed:", err);
-  }
-};
+          body: `${members[paidBy]?.name} added ₹${amt}`, // ⭐ shows actual payer's name
+        }),
+      });
+    } catch (err) {
+      console.error("Notification failed:", err);
+    }
+  };
+
   return (
     <div className="card p-3 mb-3">
       <h6>Add Expense</h6>
@@ -150,6 +151,22 @@ export default function AddSplitExpense({ splitId, members }) {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
       />
+
+      {/* ===== PAID BY ===== */}
+      <div className="mb-2">
+        <label className="form-label fw-semibold mb-1">Paid by</label>
+        <select
+          className="form-select"
+          value={paidBy}
+          onChange={(e) => setPaidBy(e.target.value)}
+        >
+          {memberEntries.map(([id, m]) => (
+            <option key={id} value={id}>
+              {id === uid ? `${m.name} (You)` : m.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* ===== SPLIT TYPE ===== */}
       <div className="mb-2">
