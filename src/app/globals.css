@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Safe-area bottom padding for notched devices */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+img[src$="/SpendShare.png"] {
+  background-color: transparent;
+}
+
+.logo-image {
+  background-color: transparent;
+}
