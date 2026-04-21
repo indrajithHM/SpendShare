@@ -3,14 +3,20 @@ import { useState, useEffect } from "react";
 import { ref, push, onValue } from "firebase/database";
 import { auth, db } from "@/lib/firebase";
 import { calculateSettlement } from "@/lib/calculateSettlement";
+import { openUPIPayment, UPI_APPS } from "@/lib/upiUtils";
+
+const isTinyBalance = (value: number) => Math.abs(value) < 0.02;
 
 export function UserBalanceCards({ members, expenses, settlements }: any) {
   const { settlement } = calculateSettlement(members, Object.values(expenses || {}), settlements);
+  const normalizedSettlement = Object.fromEntries(
+    Object.entries(settlement).map(([uid, value]) => [uid, isTinyBalance(value as number) ? 0 : value])
+  );
 
   return (
     <div className="grid grid-cols-2 gap-2 mb-3">
       {Object.entries(members).map(([uid, m]: [string, any]) => {
-        const balance = settlement[uid] || 0;
+        const balance = normalizedSettlement[uid] || 0;
         const isPos = balance > 0, isNeg = balance < 0;
         return (
           <div key={uid} className={`rounded-2xl border p-3 text-center ${isPos ? "border-green-200 bg-green-50" : isNeg ? "border-red-200 bg-red-50" : "border-gray-100 bg-gray-50"}`}>
@@ -47,15 +53,39 @@ function PartialPayRow({ splitId, fromId, toId, maxPay, debtor, creditor, uid, u
         value={amt} step="0.01" min="0.01" max={maxPay}
         onChange={(e) => setAmt(round2(Number(e.target.value)))}
       />
-      <div className="flex gap-2">
-        <a
-          href={upiLink(creditor.upi, amt, creditor.name)}
-          className="flex-1 text-center bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
-        >
-          Pay via UPI
-        </a>
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          {/* {UPI_APPS.map((app) => (
+            <button
+              key={app.scheme}
+              type="button"
+              onClick={() => openUPIPayment(
+                { payeeAddress: creditor.upi, payeeName: creditor.name, amount: String(amt), currency: 'INR' },
+                app.scheme,
+              )}
+              className="flex items-center justify-center gap-2 text-sm py-2 rounded-xl bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 text-gray-700 transition-colors"
+            >
+              {app.iconSrc ? (
+                <img src={app.iconSrc} alt={app.name} className="w-5 h-5 rounded-full bg-white p-1" />
+              ) : (
+                <span>{app.icon}</span>
+              )}
+              {app.name}
+            </button>
+          ))} */}
+          <button
+            type="button"
+            onClick={() => openUPIPayment(
+              { payeeAddress: creditor.upi, payeeName: creditor.name, amount: String(amt), currency: 'INR' },
+            )}
+            className="flex items-center justify-center gap-2 text-sm py-2 rounded-xl bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-700 transition-colors"
+          >
+            <span>🔗</span>
+            PAY VIA UPI
+          </button>
+        </div>
         <button
-          className="flex-1 border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+          className="w-full border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2.5 rounded-xl text-sm font-semibold transition-colors"
           onClick={async () => {
             if (amt <= 0 || amt > maxPay) return;
             await push(ref(db, `splits/${splitId}/settlements`), { from: fromId, to: toId, amount: amt, paidAt: Date.now() });
@@ -73,12 +103,15 @@ export function SettlementView({ splitId, expenses, members, settlements = {} }:
   if (!uid) return null;
 
   const { settlement } = calculateSettlement(members, Object.values(expenses || {}), settlements);
+  const normalizedSettlement = Object.fromEntries(
+    Object.entries(settlement).map(([uid, value]) => [uid, isTinyBalance(value as number) ? 0 : value])
+  );
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
-  const debtors = Object.entries(settlement).filter(([, v]) => (v as number) < -0.01).map(([id, v]) => ({ id, amount: round2(Math.abs(v as number)) }));
-  const creditors = Object.entries(settlement).filter(([, v]) => (v as number) > 0.01).map(([id, v]) => ({ id, amount: round2(v as number) }));
-  const userBalance = round2((settlement[uid] ?? 0) as number);
-  const isAllSettled = Object.values(settlement).every((v) => Math.abs(v as number) < 0.01);
+  const debtors = Object.entries(normalizedSettlement).filter(([, v]) => (v as number) < -0.01).map(([id, v]) => ({ id, amount: round2(Math.abs(v as number)) }));
+  const creditors = Object.entries(normalizedSettlement).filter(([, v]) => (v as number) > 0.01).map(([id, v]) => ({ id, amount: round2(v as number) }));
+  const userBalance = round2((normalizedSettlement[uid] ?? 0) as number);
+  const isAllSettled = Object.values(normalizedSettlement).every((v) => Math.abs(v as number) < 0.01);
   const upiLink = (upi: string, amount: number, name: string) =>
     `upi://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount.toFixed(2)}&cu=INR`;
 

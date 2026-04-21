@@ -48,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geist.className} bg-gray-50 min-h-screen antialiased`}>
         <ServiceWorkerRegistration />
         <PWAInstallPrompt />
+        
         {children}
       </body>
     </html>

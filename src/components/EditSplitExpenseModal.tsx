@@ -4,6 +4,14 @@ import { ref, update, remove } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
 import { X, Trash2, Save } from "lucide-react";
 
+const splitEvenShares = (amount: number, ids: string[]) => {
+  const totalPaise = Math.round(amount * 100);
+  const count = ids.length;
+  const base = Math.floor(totalPaise / count);
+  const remainder = totalPaise - base * count;
+  return ids.map((_, index) => (base + (index < remainder ? 1 : 0)) / 100);
+};
+
 export default function EditSplitExpenseModal({ splitId, expenseId, expense, members, onClose }: any) {
   const uid = auth.currentUser!.uid;
   const memberEntries = Object.entries(members || {});
@@ -37,13 +45,14 @@ export default function EditSplitExpenseModal({ splitId, expenseId, expense, mem
     if (!desc.trim() || totalAmount <= 0) return;
     let participants: Record<string, any> = {};
     if (splitType === "EQUAL_ALL") {
-      const perHead = totalAmount / memberEntries.length;
-      memberEntries.forEach(([id]) => { participants[id] = { share: perHead }; });
+      const ids = memberEntries.map(([id]) => id);
+      const splitShares = splitEvenShares(totalAmount, ids);
+      ids.forEach((id, index) => { participants[id] = { share: splitShares[index] }; });
     } else if (splitType === "EQUAL_SELECTED") {
       const ids = memberEntries.filter(([id]) => selected[id]).map(([id]) => id);
       if (!ids.length) { alert("Select at least one member"); return; }
-      const perHead = totalAmount / ids.length;
-      ids.forEach((id) => { participants[id] = { share: perHead }; });
+      const splitShares = splitEvenShares(totalAmount, ids);
+      ids.forEach((id, index) => { participants[id] = { share: splitShares[index] }; });
     } else {
       let total = 0;
       memberEntries.forEach(([id]) => {

@@ -4,10 +4,19 @@ import { push, ref } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
 import { PlusCircle } from "lucide-react";
 
+const splitEvenShares = (amount: number, ids: string[]) => {
+  const totalPaise = Math.round(amount * 100);
+  const count = ids.length;
+  const base = Math.floor(totalPaise / count);
+  const remainder = totalPaise - base * count;
+  return ids.map((_, index) => (base + (index < remainder ? 1 : 0)) / 100);
+};
+
 export default function AddSplitExpense({ splitId, members }: { splitId: string; members: Record<string, any> }) {
   const uid = auth.currentUser!.uid;
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
+  const [paidBy, setPaidBy] = useState(uid);
   const [splitType, setSplitType] = useState("EQUAL_ALL");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [shares, setShares] = useState<Record<string, string>>({});
@@ -27,13 +36,14 @@ export default function AddSplitExpense({ splitId, members }: { splitId: string;
     let participants: Record<string, any> = {};
 
     if (splitType === "EQUAL_ALL") {
-      const perHead = amt / memberEntries.length;
-      memberEntries.forEach(([id]) => { participants[id] = { share: perHead }; });
+      const ids = memberEntries.map(([id]) => id);
+      const splitShares = splitEvenShares(amt, ids);
+      ids.forEach((id, index) => { participants[id] = { share: splitShares[index] }; });
     } else if (splitType === "EQUAL_SELECTED") {
       const ids = memberEntries.filter(([id]) => selected[id]).map(([id]) => id);
       if (!ids.length) { alert("Select at least one member"); return; }
-      const perHead = amt / ids.length;
-      ids.forEach((id) => { participants[id] = { share: perHead }; });
+      const splitShares = splitEvenShares(amt, ids);
+      ids.forEach((id, index) => { participants[id] = { share: splitShares[index] }; });
     } else {
       let total = 0;
       memberEntries.forEach(([id]) => {
@@ -45,9 +55,11 @@ export default function AddSplitExpense({ splitId, members }: { splitId: string;
     }
 
     await push(ref(db, `splits/${splitId}/expenses`), {
-      description: desc, amount: amt, paidBy: uid,
+      description: desc, amount: amt, paidBy: paidBy,
       splitType, participants, createdAt: Date.now(),
     });
+
+    alert('Expense added successfully!');
 
     try {
       const participantIds = Object.keys(participants).filter((id) => id !== uid);
@@ -64,7 +76,7 @@ export default function AddSplitExpense({ splitId, members }: { splitId: string;
       }
     } catch {}
 
-    setDesc(""); setAmount(""); setShares({}); setSelected({}); setSplitType("EQUAL_ALL");
+    setDesc(""); setAmount(""); setShares({}); setSelected({}); setSplitType("EQUAL_ALL"); setPaidBy(uid);
   };
 
   const splitOptions = [
@@ -87,6 +99,18 @@ export default function AddSplitExpense({ splitId, members }: { splitId: string;
           type="number" placeholder="Amount (₹)"
           value={amount} onChange={(e) => setAmount(e.target.value)}
         />
+
+        <select
+          className="w-full border border-gray-200 rounded-xl px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          value={paidBy}
+          onChange={(e) => setPaidBy(e.target.value)}
+        >
+          {memberEntries.map(([id, m]) => (
+            <option key={id} value={id}>
+              Paid by: {m.name}
+            </option>
+          ))}
+        </select>
 
         {/* Split type */}
         <div className="flex gap-2">

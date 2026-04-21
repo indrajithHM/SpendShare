@@ -3,37 +3,68 @@ import { useState } from "react";
 import { ref, set, get } from "firebase/database";
 import { auth, db } from "@/lib/firebase";
 import { X, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function JoinSplitViaLinkModal({ onClose }: { onClose: () => void }) {
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const extractSplitId = (input: string) => {
-    // Handle both /split/{id} and /split?id={id} formats
     const pathMatch = input.match(/split\/([^/?]+)/);
     if (pathMatch) return pathMatch[1];
-    
+
     const queryMatch = input.match(/[?&]id=([^&]+)/);
     if (queryMatch) return queryMatch[1];
-    
+
     return input.trim();
   };
 
   const joinSplit = async () => {
-    setError(""); setLoading(true);
+    setError("");
+    setLoading(true);
     try {
       const splitId = extractSplitId(link);
-      if (!splitId) { setError("Invalid split link"); return; }
+
+      // ✅ Added return after each early exit so execution stops
+      if (!splitId) {
+        setError("Invalid split link");
+        return;
+      }
+
       const snap = await get(ref(db, `splits/${splitId}`));
-      if (!snap.exists()) { setError("Split not found"); return; }
-      await set(ref(db, `splits/${splitId}/members/${auth.currentUser!.uid}`), {
-        name: auth.currentUser!.displayName,
-        email: auth.currentUser!.email,
+
+      if (!snap.exists()) {
+        setError("Split not found");
+        return;
+      }
+
+      // ✅ Guard against unauthenticated user before writing
+      if (!auth.currentUser) {
+        setError("You must be logged in to join a split");
+        return;
+      }
+
+      await set(ref(db, `splits/${splitId}/members/${auth.currentUser.uid}`), {
+        name: auth.currentUser.displayName,
+        email: auth.currentUser.email,
       });
+
       onClose();
-    } catch { setError("Failed to join split"); }
-    finally { setLoading(false); }
+
+      // ✅ Force a hard navigation refresh so the splits list re-fetches data
+      router.refresh();
+
+      // ✅ Optionally navigate directly into the split
+      // router.push(`/split/${splitId}`);
+
+    } catch (err) {
+      console.error("Join split error:", err); // ✅ Log the actual error for debugging
+      setError("Failed to join split");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,6 +81,7 @@ export default function JoinSplitViaLinkModal({ onClose }: { onClose: () => void
           placeholder="Paste split link or ID"
           value={link}
           onChange={(e) => setLink(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !loading && joinSplit()} // ✅ Enter key support
         />
         {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
         <div className="flex gap-2 mt-3">
@@ -58,11 +90,11 @@ export default function JoinSplitViaLinkModal({ onClose }: { onClose: () => void
           </button>
           <button
             onClick={joinSplit}
-            disabled={loading}
+            disabled={loading || !link.trim()} // ✅ Disable if input is empty
             className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading ? "Joining…" : "Join"}
+            {loading ? "Joining..." : "Join"}
           </button>
         </div>
       </div>
