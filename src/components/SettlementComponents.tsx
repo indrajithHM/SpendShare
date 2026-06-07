@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ref, push, onValue } from "firebase/database";
 import { auth, db } from "@/lib/firebase";
 import { calculateSettlement } from "@/lib/calculateSettlement";
+import { calculatePayments } from "@/lib/calculatepayments";
 import { openUPIPayment, UPI_APPS } from "@/lib/upiUtils";
 
 const isTinyBalance = (value: number) => Math.abs(value) < 0.02;
@@ -97,7 +98,6 @@ function PartialPayRow({ splitId, fromId, toId, maxPay, debtor, creditor, uid, u
     </div>
   );
 }
-
 export function SettlementView({ splitId, expenses, members, settlements = {} }: any) {
   const uid = auth.currentUser?.uid;
   if (!uid) return null;
@@ -106,14 +106,10 @@ export function SettlementView({ splitId, expenses, members, settlements = {} }:
   const normalizedSettlement = Object.fromEntries(
     Object.entries(settlement).map(([uid, value]) => [uid, isTinyBalance(value as number) ? 0 : value])
   );
-  const round2 = (n: number) => Math.round(n * 100) / 100;
 
-  const debtors = Object.entries(normalizedSettlement).filter(([, v]) => (v as number) < -0.01).map(([id, v]) => ({ id, amount: round2(Math.abs(v as number)) }));
-  const creditors = Object.entries(normalizedSettlement).filter(([, v]) => (v as number) > 0.01).map(([id, v]) => ({ id, amount: round2(v as number) }));
-  const userBalance = round2((normalizedSettlement[uid] ?? 0) as number);
-  const isAllSettled = Object.values(normalizedSettlement).every((v) => Math.abs(v as number) < 0.01);
-  const upiLink = (upi: string, amount: number, name: string) =>
-    `upi://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount.toFixed(2)}&cu=INR`;
+  const payments = calculatePayments(normalizedSettlement);
+  const userBalance = Math.round(((normalizedSettlement[uid] ?? 0) as number) * 100) / 100;
+  const isAllSettled = payments.length === 0;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
@@ -124,25 +120,25 @@ export function SettlementView({ splitId, expenses, members, settlements = {} }:
           You will receive ₹{userBalance.toFixed(2)}
         </p>
       )}
-      {!isAllSettled && userBalance < 0 &&
-        debtors.map((debtor) =>
-          debtor.id === uid
-            ? creditors.map((creditor) => {
-                const maxPay = round2(Math.min(debtor.amount, creditor.amount));
-                if (maxPay <= 0) return null;
-                return (
-                  <PartialPayRow key={`${debtor.id}_${creditor.id}`}
-                    splitId={splitId} fromId={debtor.id} toId={creditor.id} maxPay={maxPay}
-                    debtor={members[debtor.id]} creditor={members[creditor.id]} uid={uid} upiLink={upiLink}
-                  />
-                );
-              })
-            : null
-        )}
+      {!isAllSettled &&
+        payments
+          .filter((p) => p.from === uid) // only show payments the current user needs to make
+          .map((p) => (
+            <PartialPayRow
+              key={`${p.from}_${p.to}`}
+              splitId={splitId}
+              fromId={p.from}
+              toId={p.to}
+              maxPay={p.amount}
+              debtor={members[p.from]}
+              creditor={members[p.to]}
+              uid={uid}
+              upiLink={null}
+            />
+          ))}
     </div>
   );
 }
-
 export function SettlementHistory({ splitId, members }: any) {
   const [history, setHistory] = useState<any[]>([]);
 
