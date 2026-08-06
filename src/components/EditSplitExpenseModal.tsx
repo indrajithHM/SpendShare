@@ -29,13 +29,10 @@ export default function EditSplitExpenseModal({ splitId, expenseId, expense, mem
     }
   }, [expense]);
 
-  useEffect(() => {
-    if (splitType === "EQUAL_SELECTED") {
-      const all: Record<string, boolean> = {};
-      memberEntries.forEach(([id]) => { all[id] = true; });
-      setSelected(all);
-    }
-  }, [splitType]);
+  // NOTE: no effect resetting `selected` on splitType change anymore.
+  // `selected` is seeded once above from expense.participants and then
+  // only changes when the user toggles a checkbox, regardless of how
+  // many times they flip between All / Selected / Unequal before saving.
 
   const totalAmount = splitType === "UNEQUAL"
     ? Object.values(shares).reduce((s, v) => s + Number(v || 0), 0)

@@ -18,7 +18,7 @@ export default function SplitDashboard({ splitId }: { splitId: string }) {
   const [savingUpi, setSavingUpi] = useState(false);
   const [upiSaved, setUpiSaved] = useState(false);
   const uid = auth.currentUser?.uid;
-
+  const [expandedExpense, setExpandedExpense] = useState<string | null>(null);
   useEffect(() => {
     return onValue(ref(db, `splits/${splitId}`), (snap) => {
       if (snap.exists()) setSplit(snap.val());
@@ -149,32 +149,57 @@ export default function SplitDashboard({ splitId }: { splitId: string }) {
           <SettlementView splitId={splitId} expenses={expenses} members={members} settlements={settlements} />
           {userSettlements.length > 0 && <SettlementHistory splitId={splitId} members={members} settlements={userSettlements} />}
 
-          {/* Expenses list */}
+         {/* Expenses list */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Expenses</h3>
             {visibleExpenses.length === 0 ? (
               <p className="text-sm text-gray-400 py-2">No expenses assigned to you</p>
             ) : (
               <div className="space-y-0">
-                {visibleExpenses.map(([eid, e]: any) => (
-                  <div key={eid} className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-gray-800">{e.description}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        ₹{e.amount} · Paid by {members[e.paidBy]?.name}
-                        {e.createdAt && ` · ${new Date(e.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}`}
-                      </p>
-                    </div>
-                    {uid === e.paidBy && status === "OPEN" && (
-                      <button
-                        onClick={() => setEditingExpense({ id: eid, data: e })}
-                        className="ml-3 text-xs border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 px-3 py-1.5 rounded-xl transition-colors flex-shrink-0"
+                {visibleExpenses.map(([eid, e]: any) => {
+                  const isExpanded = expandedExpense === eid;
+                  const participantEntries = Object.entries(e.participants || {});
+                  return (
+                    <div key={eid} className="border-b border-gray-50 last:border-0">
+                      <div
+                        className="flex items-start justify-between py-3 cursor-pointer"
+                        onClick={() => setExpandedExpense(isExpanded ? null : eid)}
                       >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                ))}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-800">{e.description}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            ₹{e.amount} · Paid by {members[e.paidBy]?.name}
+                            {e.createdAt && ` · ${new Date(e.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}`}
+                          </p>
+                        </div>
+                        {uid === e.paidBy && status === "OPEN" && (
+                          <button
+                            onClick={(ev) => { ev.stopPropagation(); setEditingExpense({ id: eid, data: e }); }}
+                            className="ml-3 text-xs border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 px-3 py-1.5 rounded-xl transition-colors flex-shrink-0"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+
+                      {isExpanded && (
+                        <div className="bg-gray-50 rounded-xl p-3 mb-3 space-y-1.5">
+                          {participantEntries.map(([pid, p]: any) => (
+                            <div key={pid} className="flex items-center justify-between">
+                              <span className="text-sm text-gray-700">
+                                {members[pid]?.name || "Unknown"}
+                                {pid === e.paidBy && (
+                                  <span className="ml-1.5 text-[10px] text-indigo-500 font-medium">PAID</span>
+                                )}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-800">₹{Number(p.share).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

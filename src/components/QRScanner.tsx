@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
-import { X, Camera, CameraOff } from 'lucide-react';
+import { CameraOff, RefreshCw } from 'lucide-react';
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -12,6 +12,9 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [showDeviceMenu, setShowDeviceMenu] = useState(false);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
   useEffect(() => {
@@ -21,7 +24,15 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
     };
   }, []);
 
-  const startScanning = async () => {
+  const pickDefaultDevice = (videoInputDevices: MediaDeviceInfo[]) => {
+    const backCamera = videoInputDevices.find(device =>
+      device.label.toLowerCase().includes('back') ||
+      device.label.toLowerCase().includes('rear')
+    );
+    return backCamera?.deviceId || videoInputDevices[0].deviceId;
+  };
+
+  const startScanning = async (deviceId?: string) => {
     try {
       setError('');
       setIsScanning(true);
@@ -35,15 +46,13 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
         throw new Error('No camera found');
       }
 
-      const backCamera = videoInputDevices.find(device =>
-        device.label.toLowerCase().includes('back') ||
-        device.label.toLowerCase().includes('rear')
-      );
+      setDevices(videoInputDevices);
 
-      const selectedDeviceId = backCamera?.deviceId || videoInputDevices[0].deviceId;
+      const targetDeviceId = deviceId || selectedDeviceId || pickDefaultDevice(videoInputDevices);
+      setSelectedDeviceId(targetDeviceId);
 
       await codeReader.decodeFromVideoDevice(
-        selectedDeviceId,
+        targetDeviceId,
         videoRef.current!,
         (result, err) => {
           if (result) {
@@ -76,36 +85,47 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
     onClose();
   };
 
-  const toggleScanning = () => {
-    if (isScanning) {
-      stopScanning();
-    } else {
-      startScanning();
-    }
+  const switchDevice = async (deviceId: string) => {
+    if (deviceId === selectedDeviceId) { setShowDeviceMenu(false); return; }
+    stopScanning();
+    setShowDeviceMenu(false);
+    await startScanning(deviceId);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="relative w-full h-full">
 
-        {/* Close button — now calls stopScanning + onClose */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 z-10 bg-white bg-opacity-20 rounded-full p-2.5 text-white hover:bg-opacity-40 active:scale-95 transition-all"
-          aria-label="Close scanner"
-        >
-         X {/* <X className="w-6 h-6" /> */}
-        </button>
+        {/* Camera switch button */}
+        {devices.length > 1 && (
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={() => setShowDeviceMenu((p) => !p)}
+              className="bg-white/20 rounded-full p-2.5 text-white hover:bg-white/40 active:scale-95 transition-all"
+              aria-label="Switch camera"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
 
-        {/* Back label under close for clarity */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 left-4 z-10 flex items-center gap-1.5 bg-white bg-opacity-20 rounded-full px-3 py-2 text-white text-sm font-medium hover:bg-opacity-40 active:scale-95 transition-all"
-          aria-label="Go back"
-        >
-          <X className="w-4 h-4" />
-          Back
-        </button>
+            {showDeviceMenu && (
+              <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-lg overflow-hidden">
+                {devices.map((d) => (
+                  <button
+                    key={d.deviceId}
+                    onClick={() => switchDevice(d.deviceId)}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      d.deviceId === selectedDeviceId
+                        ? 'bg-indigo-50 text-indigo-600 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {d.label || `Camera ${devices.indexOf(d) + 1}`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="relative w-full h-full bg-black overflow-hidden">
           <video
@@ -118,14 +138,10 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
 
           {/* Scanning frame overlay */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="relative w-64 h-64">
-              {/* Dimmed outer area effect via box shadow */}
-              <div className="absolute inset-0 rounded-2xl ring-[9999px] ring-black/60" />
-              {/* Corner markers */}
-              <div className="absolute top-0 left-0 w-10 h-10 border-l-4 border-t-4 border-indigo-400 rounded-tl-xl" />
-              <div className="absolute top-0 right-0 w-10 h-10 border-r-4 border-t-4 border-indigo-400 rounded-tr-xl" />
-              <div className="absolute bottom-0 left-0 w-10 h-10 border-l-4 border-b-4 border-indigo-400 rounded-bl-xl" />
-              <div className="absolute bottom-0 right-0 w-10 h-10 border-r-4 border-b-4 border-indigo-400 rounded-br-xl" />
+            <div
+              className="relative w-64 h-64 rounded-2xl border-2 border-indigo-400"
+              style={{ boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)' }}
+            >
               {/* Animated scan line */}
               {isScanning && (
                 <div className="absolute left-2 right-2 h-0.5 bg-indigo-400 opacity-80 animate-scan-line" />
@@ -142,20 +158,11 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
               <p className="text-red-400 text-xs mb-3">{error}</p>
             )}
             <button
-              onClick={toggleScanning}
+              onClick={handleClose}
               className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all mx-auto"
             >
-              {isScanning ? (
-                <>
-                  <CameraOff className="w-4 h-4" />
-                  Stop Scanning
-                </>
-              ) : (
-                <>
-                  <Camera className="w-4 h-4" />
-                  Start Scanning
-                </>
-              )}
+              <CameraOff className="w-4 h-4" />
+              Stop Scanning
             </button>
           </div>
         </div>

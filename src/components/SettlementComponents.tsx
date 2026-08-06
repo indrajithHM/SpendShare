@@ -34,11 +34,19 @@ export function UserBalanceCards({ members, expenses, settlements }: any) {
   );
 }
 
-function PartialPayRow({ splitId, fromId, toId, maxPay, debtor, creditor, uid, upiLink }: any) {
+function PartialPayRow({ splitId, fromId, toId, maxPay, debtor, creditor, uid }: any) {
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const [amt, setAmt] = useState(round2(maxPay));
   useEffect(() => { setAmt(round2(maxPay)); }, [maxPay]);
-  if (fromId !== uid) return null;
+
+  const isPayer = fromId === uid;
+  const isReceiver = toId === uid;
+  if (!isPayer && !isReceiver) return null;
+
+  const markSettled = async () => {
+    if (amt <= 0 || amt > maxPay) return;
+    await push(ref(db, `splits/${splitId}/settlements`), { from: fromId, to: toId, amount: amt, paidAt: Date.now() });
+  };
 
   return (
     <div className="border-b border-gray-50 py-3 last:border-0">
@@ -48,56 +56,41 @@ function PartialPayRow({ splitId, fromId, toId, maxPay, debtor, creditor, uid, u
         </span>
         <span className="text-sm font-bold text-red-500">₹{maxPay.toFixed(2)}</span>
       </div>
+
       <input
         type="number"
         className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300"
         value={amt} step="0.01" min="0.01" max={maxPay}
         onChange={(e) => setAmt(round2(Number(e.target.value)))}
       />
-      <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          {/* {UPI_APPS.map((app) => (
-            <button
-              key={app.scheme}
-              type="button"
-              onClick={() => openUPIPayment(
-                { payeeAddress: creditor.upi, payeeName: creditor.name, amount: String(amt), currency: 'INR' },
-                app.scheme,
-              )}
-              className="flex items-center justify-center gap-2 text-sm py-2 rounded-xl bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 text-gray-700 transition-colors"
-            >
-              {app.iconSrc ? (
-                <img src={app.iconSrc} alt={app.name} className="w-5 h-5 rounded-full bg-white p-1" />
-              ) : (
-                <span>{app.icon}</span>
-              )}
-              {app.name}
-            </button>
-          ))} */}
+
+      {isPayer && (
+        <div className="space-y-2">
           <button
             type="button"
             onClick={() => openUPIPayment(
               { payeeAddress: creditor.upi, payeeName: creditor.name, amount: String(amt), currency: 'INR' },
             )}
-            className="flex items-center justify-center gap-2 text-sm py-2 rounded-xl bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-700 transition-colors"
+            className="w-full flex items-center justify-center gap-2 text-sm py-2 rounded-xl bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-700 transition-colors"
           >
             <span>🔗</span>
             PAY VIA UPI
           </button>
         </div>
+      )}
+
+      {isReceiver && (
         <button
           className="w-full border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-          onClick={async () => {
-            if (amt <= 0 || amt > maxPay) return;
-            await push(ref(db, `splits/${splitId}/settlements`), { from: fromId, to: toId, amount: amt, paidAt: Date.now() });
-          }}
+          onClick={markSettled}
         >
-          Mark Paid
+          Mark as Received
         </button>
-      </div>
+      )}
     </div>
   );
 }
+
 export function SettlementView({ splitId, expenses, members, settlements = {} }: any) {
   const uid = auth.currentUser?.uid;
   if (!uid) return null;
@@ -111,6 +104,8 @@ export function SettlementView({ splitId, expenses, members, settlements = {} }:
   const userBalance = Math.round(((normalizedSettlement[uid] ?? 0) as number) * 100) / 100;
   const isAllSettled = payments.length === 0;
 
+  const relevantPayments = payments.filter((p) => p.from === uid || p.to === uid);
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Settlement</h3>
@@ -121,24 +116,22 @@ export function SettlementView({ splitId, expenses, members, settlements = {} }:
         </p>
       )}
       {!isAllSettled &&
-        payments
-          .filter((p) => p.from === uid) // only show payments the current user needs to make
-          .map((p) => (
-            <PartialPayRow
-              key={`${p.from}_${p.to}`}
-              splitId={splitId}
-              fromId={p.from}
-              toId={p.to}
-              maxPay={p.amount}
-              debtor={members[p.from]}
-              creditor={members[p.to]}
-              uid={uid}
-              upiLink={null}
-            />
-          ))}
+        relevantPayments.map((p) => (
+          <PartialPayRow
+            key={`${p.from}_${p.to}`}
+            splitId={splitId}
+            fromId={p.from}
+            toId={p.to}
+            maxPay={p.amount}
+            debtor={members[p.from]}
+            creditor={members[p.to]}
+            uid={uid}
+          />
+        ))}
     </div>
   );
 }
+
 export function SettlementHistory({ splitId, members }: any) {
   const [history, setHistory] = useState<any[]>([]);
 
